@@ -1,0 +1,144 @@
+<div class="admin-page">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-box"><i class="ti ti-building"></i></div>
+      <div>
+        <div class="sb-logo-name">Eli<span class="accent">Estate</span></div>
+        <div class="sb-logo-sub">Espace Administrateur</div>
+      </div>
+    </div>
+    <div class="sb-divider"></div>
+    <nav class="sb-nav">
+      <ng-container *ngFor="let item of sidebarItems; let i = index">
+        <div class="sb-section"
+          *ngIf="i === 0 || item.section !== sidebarItems[i-1].section">
+          {{ item.section }}
+        </div>
+        <a class="sb-item" [ngClass]="{active: item.active}"
+          [routerLink]="item.route" (click)="setActive(i)">
+          <i [class]="item.icone"></i>{{ item.label }}
+          <span class="sb-badge" *ngIf="item.badge">{{ item.badge }}</span>
+        </a>
+      </ng-container>
+    </nav>
+    <div class="sb-bottom">
+      <div class="sb-user">
+        <div class="sb-avatar">AD</div>
+        <div>
+          <div class="sb-user-name">Admin</div>
+          <div class="sb-user-role">Administrateur</div>
+        </div>
+        <i class="ti ti-logout sb-logout" (click)="deconnecter()" title="Déconnexion"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENU -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="tb-left">
+        <h1>Tableau de bord administrateur</h1>
+        <p>Vue d'ensemble de la plateforme EliEstate</p>
+      </div>
+      <div class="tb-right">
+        <div class="tb-btn"><i class="ti ti-bell"></i></div>
+        <div class="tb-avatar">AD</div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <div class="alert-error" *ngIf="erreur">
+        <i class="ti ti-alert-circle"></i>{{ erreur }}
+        <button (click)="chargerStats()">Réessayer</button>
+      </div>
+
+      <div class="loading" *ngIf="loading">
+        <i class="ti ti-refresh spin"></i> Chargement…
+      </div>
+
+      <ng-container *ngIf="!loading && !erreur">
+
+        <!-- STATS -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="sc-icon ico-blue"><i class="ti ti-users"></i></div>
+            <div>
+              <div class="sc-val">{{ stats.totalProprietaires }}</div>
+              <div class="sc-lbl">Propriétaires</div>
+              <a routerLink="/admin/proprietaire" class="sc-link">Gérer →</a>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="sc-icon ico-green"><i class="ti ti-building"></i></div>
+            <div>
+              <div class="sc-val">{{ stats.totalBiens }}</div>
+              <div class="sc-lbl">Biens total</div>
+              <a routerLink="/admin/biens" class="sc-link">Voir tous →</a>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="sc-icon ico-purple"><i class="ti ti-user"></i></div>
+            <div>
+              <div class="sc-val">{{ stats.totalLocataires }}</div>
+              <div class="sc-lbl">Locataires</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="sc-icon ico-orange"><i class="ti ti-file-text"></i></div>
+            <div>
+              <div class="sc-val">{{ stats.totalContrats }}</div>
+              <div class="sc-lbl">Contrats actifs</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="sc-icon ico-teal"><i class="ti ti-credit-card"></i></div>
+            <div>
+              <div class="sc-val">{{ revenusFormates }}</div>
+              <div class="sc-lbl">Revenus FCFA (global)</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="sc-icon ico-red"><i class="ti ti-calendar-event"></i></div>
+            <div>
+              <div class="sc-val">{{ stats.demandesNonTraitees }}</div>
+              <div class="sc-lbl">Demandes en attente</div>
+              <a routerLink="/admin/demandes" class="sc-link">Voir →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIONS RAPIDES -->
+        <div class="card">
+          <div class="card-title">Actions rapides</div>
+          <div class="quick-actions">
+            <button class="qa-btn" routerLink="/admin/proprietaire">
+              <i class="ti ti-user-plus"></i>
+              <span>Ajouter un propriétaire</span>
+            </button>
+            <button class="qa-btn" routerLink="/admin/biens">
+              <i class="ti ti-building"></i>
+              <span>Voir tous les biens</span>
+            </button>
+            <button class="qa-btn" routerLink="/admin/demandes">
+              <i class="ti ti-calendar-event"></i>
+              <span>Traiter les demandes</span>
+            </button>
+            <button class="qa-btn" routerLink="/admin/utilisateurs">
+              <i class="ti ti-user-cog"></i>
+              <span>Gérer les utilisateurs</span>
+            </button>
+          </div>
+        </div>
+
+      </ng-container>
+    </div>
+  </div>
+</div>

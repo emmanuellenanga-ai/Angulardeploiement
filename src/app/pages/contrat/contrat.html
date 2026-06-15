@@ -1,0 +1,363 @@
+<div class="contrat-page">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-box"><i class="ti ti-building"></i></div>
+      <div>
+        <div class="sb-logo-name">Eli<span class="accent">Estate</span></div>
+        <div class="sb-logo-sub">Gestion Immobilière</div>
+      </div>
+    </div>
+    <div class="sb-divider"></div>
+    <nav class="sb-nav">
+      <ng-container *ngFor="let item of sidebarItems; let i = index">
+        <div class="sb-section"
+          *ngIf="i === 0 || item.section !== sidebarItems[i-1].section">
+          {{ item.section }}
+        </div>
+        <a class="sb-item"
+          [ngClass]="{active: item.active}"
+          [routerLink]="item.route"
+          (click)="setActive(i)">
+          <i [class]="item.icone"></i>{{ item.label }}
+        </a>
+      </ng-container>
+    </nav>
+    <div class="sb-bottom">
+      <div class="sb-user">
+        <div class="sb-avatar">AD</div>
+        <div>
+          <div class="sb-user-name">Admin</div>
+          <div class="sb-user-role">Administrateur</div>
+        </div>
+        <i class="ti ti-logout sb-logout"(click)="deconnecter()"title="Se déconnecter"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENU -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="tb-left">
+        <h1>Gestion des contrats</h1>
+        <p>Liste de tous vos contrats de bail</p>
+      </div>
+      <div class="tb-right">
+        <div class="tb-search">
+          <i class="ti ti-search"></i>
+          <input type="text" placeholder="Rechercher…" />
+        </div>
+        <div class="tb-btn"><i class="ti ti-bell"></i></div>
+        <div class="tb-avatar">AD</div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- EN-TÊTE -->
+      <div class="page-header">
+        <div>
+          <h2>Liste des contrats</h2>
+          <p class="page-sub">{{ contrats.length }} contrat(s) enregistré(s)</p>
+        </div>
+        <button class="btn-add" (click)="ouvrirAjout()">
+          <i class="ti ti-plus"></i> Nouveau contrat
+        </button>
+      </div>
+
+      <!-- ALERTE EXPIRATION -->
+      <div class="alert-warning" *ngIf="alerteExpiration">
+        <i class="ti ti-alert-triangle"></i>
+        {{ alerteExpiration }}
+      </div>
+
+      <!-- ERREUR -->
+      <div class="alert-error" *ngIf="erreur">
+        <i class="ti ti-alert-circle"></i>{{ erreur }}
+        <button (click)="chargerDonnees()">Réessayer</button>
+      </div>
+
+      <!-- CHARGEMENT -->
+      <div class="loading" *ngIf="loading">
+        <i class="ti ti-refresh spin"></i> Chargement…
+      </div>
+
+      <ng-container *ngIf="!loading && !erreur">
+
+        <!-- FILTRES -->
+        <div class="filters-row">
+          <div class="filter-search">
+            <i class="ti ti-search"></i>
+            <input type="text"
+              placeholder="Référence, locataire, bien…"
+              [(ngModel)]="recherche"
+              (ngModelChange)="appliquerFiltres()" />
+          </div>
+          <select class="filter-select"
+            [(ngModel)]="filtreStatut"
+            (ngModelChange)="appliquerFiltres()">
+            <option value="">Tous les statuts</option>
+            <option value="Actif">Actif</option>
+            <option value="Expiration">Expiration proche</option>
+            <option value="Résilié">Résilié</option>
+          </select>
+        </div>
+
+        <!-- MINI STATS -->
+        <div class="stats-mini">
+          <div class="sm-card">
+            <div class="sm-icon ico-blue"><i class="ti ti-file-text"></i></div>
+            <div><div class="sm-val">{{ stats.total }}</div><div class="sm-lbl">Total contrats</div></div>
+          </div>
+          <div class="sm-card">
+            <div class="sm-icon ico-green"><i class="ti ti-file-check"></i></div>
+            <div><div class="sm-val">{{ stats.actifs }}</div><div class="sm-lbl">Actifs</div></div>
+          </div>
+          <div class="sm-card">
+            <div class="sm-icon ico-amber"><i class="ti ti-clock"></i></div>
+            <div><div class="sm-val">{{ stats.expiration }}</div><div class="sm-lbl">Expiration proche</div></div>
+          </div>
+          <div class="sm-card">
+            <div class="sm-icon ico-red"><i class="ti ti-file-off"></i></div>
+            <div><div class="sm-val">{{ stats.resilies }}</div><div class="sm-lbl">Résiliés</div></div>
+          </div>
+        </div>
+
+        <!-- TABLEAU -->
+        <div class="table-card">
+          <div class="tc-header">
+            <span class="tc-title">Contrats de bail</span>
+            <span class="tc-count">{{ contratsFiltres.length }} résultat(s)</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Référence</th>
+                  <th>Locataire</th>
+                  <th>Bien</th>
+                  <th>Date début</th>
+                  <th>Date fin</th>
+                  <th>Loyer (FCFA)</th>
+                  <th>Durée</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of contratsPagines"
+                  [ngClass]="{'row-expiring': c.joursRestants <= 30 && c.joursRestants > 0 && c.statut === 'Actif'}">
+                  <td>
+                    <span class="td-ref">{{ c.reference }}</span>
+                  </td>
+                  <td>
+                    <div class="td-locataire">
+                      <div class="td-avatar">{{ c.initialesLocataire }}</div>
+                      <span class="td-nom">{{ c.nomLocataire }}</span>
+                    </div>
+                  </td>
+                  <td class="td-muted">{{ c.nomBien }}</td>
+                  <td class="td-muted">{{ c.dateDebut }}</td>
+                  <td class="td-muted">
+                    {{ c.dateFin }}
+                    <span class="days-badge" *ngIf="c.joursRestants > 0 && c.joursRestants <= 60">
+                      {{ c.joursRestants }}j
+                    </span>
+                  </td>
+                  <td class="td-prix">{{ c.loyer }}</td>
+                  <td class="td-center">{{ c.dureeMois }} mois</td>
+                  <td>
+                    <span class="badge" [ngClass]="c.statutClass">{{ c.statut }}</span>
+                  </td>
+                  <td>
+                    <div class="actions">
+                      <button class="act-btn" title="Voir"
+                        [routerLink]="['/contrat', c.id]">
+                        <i class="ti ti-eye"></i>
+                      </button>
+                      <button class="act-btn" title="Modifier"
+                        (click)="ouvrirModifier(c)">
+                        <i class="ti ti-edit"></i>
+                      </button>
+                      <button class="act-btn" title="Télécharger PDF">
+                        <i class="ti ti-download"></i>
+                      </button>
+                      <button class="act-btn danger" title="Résilier"
+                        *ngIf="c.statut !== 'Résilié'"
+                        (click)="confirmerResiliation(c.id)">
+                        <i class="ti ti-file-off"></i>
+                      </button>
+                      <button class="act-btn danger" title="Supprimer"
+                        (click)="confirmerSuppression(c.id)">
+                        <i class="ti ti-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="contratsFiltres.length === 0">
+                  <td colspan="9" class="empty-msg">
+                    <i class="ti ti-file-off"></i>
+                    Aucun contrat trouvé
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- PAGINATION -->
+          <div class="pagination" *ngIf="totalPages > 1">
+            <span class="pag-info">
+              Affichage {{ (pageActuelle-1)*parPage+1 }}–{{
+                Math.min(pageActuelle*parPage, contratsFiltres.length)
+              }} sur {{ contratsFiltres.length }}
+            </span>
+            <div class="pag-btns">
+              <button class="pag-btn"
+                (click)="changerPage(pageActuelle-1)"
+                [disabled]="pageActuelle === 1">
+                <i class="ti ti-chevron-left"></i>
+              </button>
+              <button class="pag-btn"
+                *ngFor="let p of pages"
+                [ngClass]="{active: p === pageActuelle}"
+                (click)="changerPage(p)">{{ p }}
+              </button>
+              <button class="pag-btn"
+                (click)="changerPage(pageActuelle+1)"
+                [disabled]="pageActuelle === totalPages">
+                <i class="ti ti-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </ng-container>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AJOUTER / MODIFIER -->
+<div class="modal-overlay" *ngIf="showModal" (click)="fermerModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ modeModal === 'ajouter' ? 'Nouveau contrat' : 'Modifier le contrat' }}</h3>
+      <button class="modal-close" (click)="fermerModal()">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Locataire *</label>
+          <select [(ngModel)]="contratEnCours.locataire">
+            <option [value]="0">— Sélectionner —</option>
+            <option *ngFor="let l of locataires" [value]="l.id">
+              {{ l.prenom }} {{ l.nom }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Bien *</label>
+          <select [(ngModel)]="contratEnCours.bien">
+            <option [value]="0">— Sélectionner —</option>
+            <option *ngFor="let b of biens" [value]="b.id">{{ b.titre }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Loyer mensuel (FCFA) *</label>
+        <input type="number" [(ngModel)]="contratEnCours.loyer"
+          placeholder="0" />
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Date de début *</label>
+          <input type="date" [(ngModel)]="contratEnCours.date_debut" />
+        </div>
+        <div class="form-group">
+          <label>Date de fin *</label>
+          <input type="date" [(ngModel)]="contratEnCours.date_fin" />
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Statut *</label>
+          <select [(ngModel)]="contratEnCours.statut">
+            <option value="Actif">Actif</option>
+            <option value="Expiration">Expiration proche</option>
+            <option value="Résilié">Résilié</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Observations</label>
+        <textarea [(ngModel)]="contratEnCours.observations"
+          placeholder="Notes sur le contrat…" rows="3"></textarea>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="fermerModal()">Annuler</button>
+      <button class="btn-save" (click)="soumettre()">
+        <i class="ti ti-check"></i>
+        {{ modeModal === 'ajouter' ? 'Enregistrer' : 'Mettre à jour' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMATION RÉSILIATION -->
+<div class="modal-overlay" *ngIf="showConfirmResil" (click)="annulerResiliation()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Confirmer la résiliation</h3>
+      <button class="modal-close" (click)="annulerResiliation()">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-msg">
+        <i class="ti ti-alert-triangle confirm-icon"></i>
+        <p>Voulez-vous vraiment résilier ce contrat ? Le statut passera à "Résilié".</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="annulerResiliation()">Annuler</button>
+      <button class="btn-danger" (click)="resilierConfirme()">
+        <i class="ti ti-file-off"></i> Résilier
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMATION SUPPRESSION -->
+<div class="modal-overlay" *ngIf="showConfirmSuppr" (click)="annulerSuppression()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Confirmer la suppression</h3>
+      <button class="modal-close" (click)="annulerSuppression()">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-msg">
+        <i class="ti ti-alert-triangle confirm-icon"></i>
+        <p>Voulez-vous vraiment supprimer ce contrat ? Cette action est irréversible.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="annulerSuppression()">Annuler</button>
+      <button class="btn-danger" (click)="supprimerConfirme()">
+        <i class="ti ti-trash"></i> Supprimer
+      </button>
+    </div>
+  </div>
+</div>

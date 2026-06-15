@@ -1,0 +1,113 @@
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-logo">
+    <div class="logo-icon"><i class="ti ti-building"></i></div>
+    <div class="logo-text">
+      <span class="name">Immo<span class="accent">Gest</span></span>
+      <span class="sub">Gestion Immobilière</span>
+    </div>
+  </div>
+  <ul class="nav-links">
+    <li><a routerLink="/home">Accueil</a></li>
+    <li><a routerLink="/apropos">À propos</a></li>
+    <li><a routerLink="/biens-publics">Biens</a></li>
+    <li><a routerLink="/services" class="active">Services</a></li>
+    <li><a routerLink="/contact">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-phone"><i class="ti ti-phone"></i>{{ telephone }}</div>
+    <button class="btn-login" routerLink="/login">
+      <i class="ti ti-user"></i> Se connecter
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="page-hero">
+  <div class="page-hero-overlay"></div>
+  <div class="page-hero-content">
+    <div class="page-badge">Nos services</div>
+    <h1>Des solutions complètes pour<br><span class="accent-light">votre gestion immobilière</span></h1>
+    <p>ImmoGest vous offre une gamme complète de services pour simplifier et optimiser la gestion de votre patrimoine immobilier.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" routerLink="/contact">
+        <i class="ti ti-mail"></i> Demander un devis
+      </button>
+      <button class="btn-secondary" routerLink="/login">
+        Essayer gratuitement <i class="ti ti-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES GRID -->
+<section class="section-surface">
+  <div class="container">
+    <div class="section-header center">
+      <div class="section-tag">Nos services</div>
+      <h2>Tout ce dont vous avez besoin</h2>
+      <p>Une suite complète d'outils pour gérer votre patrimoine immobilier de A à Z.</p>
+    </div>
+    <div class="services-grid">
+      <div class="service-card" *ngFor="let s of services">
+        <div class="sc-top">
+          <div [attr.class]="'sc-icon ' + s.couleur">
+            <i [class]="s.icone"></i>
+          </div>
+          <span class="sc-badge" *ngIf="s.badge"
+            [class.badge-green]="s.badge === 'Nouveau'"
+            [class.badge-blue]="s.badge !== 'Nouveau'">
+            {{ s.badge }}
+          </span>
+        </div>
+        <h3>{{ s.titre }}</h3>
+        <p>{{ s.desc }}</p>
+        <ul class="sc-features">
+          <li *ngFor="let f of s.features">
+            <i class="ti ti-check"></i>{{ f }}
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESSUS -->
+<section class="section-white">
+  <div class="container">
+    <div class="section-header center">
+      <div class="section-tag">Comment ça marche</div>
+      <h2>Un processus simple en 4 étapes</h2>
+    </div>
+    <div class="processus-grid">
+      <div class="processus-card" *ngFor="let p of processus; let last = last">
+        <div class="proc-num">{{ p.num }}</div>
+        <h3>{{ p.titre }}</h3>
+        <p>{{ p.desc }}</p>
+        <div class="proc-arrow" *ngIf="!last">
+          <i class="ti ti-arrow-right"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Prêt à simplifier votre gestion ?</h2>
+  <p>Contactez-nous pour une démonstration gratuite de notre plateforme.</p>
+  <div class="cta-btns">
+    <button class="btn-primary" routerLink="/login">Démarrer maintenant</button>
+    <button class="btn-ghost" routerLink="/contact">Nous contacter</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <span class="footer-brand">Immo<span class="accent">Gest</span></span>
+  <span class="footer-copy">© 2024 ImmoGest — Tous droits réservés</span>
+  <div class="footer-links">
+    <a href="#">Confidentialité</a>
+    <a routerLink="/contact">Contact</a>
+  </div>
+</footer>

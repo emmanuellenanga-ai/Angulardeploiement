@@ -1,0 +1,302 @@
+<div class="dashboard-page">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-box"><i class="ti ti-building"></i></div>
+      <div>
+        <div class="sb-logo-name">Eli<span class="accent">Estate</span></div>
+        <div class="sb-logo-sub">Gestion Immobilière</div>
+      </div>
+    </div>
+    <div class="sb-divider"></div>
+
+    <nav class="sb-nav">
+      <ng-container *ngFor="let item of sidebarItems; let i = index">
+        <div class="sb-section"
+          *ngIf="i === 0 || item.section !== sidebarItems[i-1].section">
+          {{ item.section }}
+        </div>
+        <a class="sb-item"
+          [ngClass]="{ active: item.active }"
+          [routerLink]="item.route"
+          (click)="setActive(i)">
+          <i [class]="item.icone"></i>
+          {{ item.label }}
+          <span class="sb-badge" *ngIf="item.badge && +item.badge > 0">
+            {{ item.badge }}
+          </span>
+        </a>
+      </ng-container>
+    </nav>
+
+    <div class="sb-bottom">
+      <div class="sb-user">
+        <div class="sb-avatar">AD</div>
+        <div>
+          <div class="sb-user-name">Admin</div>
+          <div class="sb-user-role">Administrateur</div>
+        </div>
+        <i class="ti ti-logout sb-logout"(click)="deconnecter()"title="Se déconnecter"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══ CONTENU ══ -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="tb-left">
+        <h1>Tableau de bord</h1>
+        <p>{{ dateAujourdhui }} — Vue d'ensemble</p>
+      </div>
+      <div class="tb-right">
+        <div class="tb-search">
+          <i class="ti ti-search"></i>
+          <input type="text" placeholder="Rechercher…" />
+        </div>
+        <div class="tb-btn">
+          <i class="ti ti-bell"></i>
+          <span class="notif-dot"
+            *ngIf="stats.contratsExpiration > 0"></span>
+        </div>
+        <div class="tb-btn"><i class="ti ti-settings"></i></div>
+        <div class="tb-avatar">AD</div>
+      </div>
+    </header>
+
+    <!-- ÉTAT CHARGEMENT -->
+    <div class="loading-bar" *ngIf="loading">
+      <div class="loading-spinner">
+        <i class="ti ti-refresh spin"></i>
+        Chargement des données…
+      </div>
+    </div>
+
+    <!-- ERREUR -->
+    <div class="error-bar" *ngIf="erreur">
+      <i class="ti ti-alert-circle"></i>
+      {{ erreur }}
+      <button (click)="chargerDonnees()">Réessayer</button>
+    </div>
+
+    <!-- CONTENU PRINCIPAL -->
+    <div class="page-content" *ngIf="!loading && !erreur">
+
+      <!-- ── STATISTIQUES
+           Toutes calculées depuis les données API ── -->
+      <div class="stats-grid">
+
+        <div class="stat-card">
+          <div class="sc-top">
+            <div class="sc-icon ico-blue"><i class="ti ti-building"></i></div>
+            <span class="sc-delta delta-up">
+              ↑ {{ stats.biensDispos }} dispos
+            </span>
+          </div>
+          <div class="sc-val">{{ stats.biensActifs }}</div>
+          <div class="sc-lbl">Biens actifs</div>
+          <div class="sc-sub">{{ stats.biensDispos }} disponibles ce mois</div>
+          <a class="sc-link" routerLink="/bien">Voir tous →</a>
+        </div>
+
+        <div class="stat-card">
+          <div class="sc-top">
+            <div class="sc-icon ico-green"><i class="ti ti-users"></i></div>
+            <span class="sc-delta delta-up">
+              ↑ {{ stats.tauxOccupation }}%
+            </span>
+          </div>
+          <div class="sc-val">{{ stats.biensOccupes }}</div>
+          <div class="sc-lbl">Biens occupés</div>
+          <div class="sc-sub">Taux d'occupation {{ stats.tauxOccupation }}%</div>
+          <a class="sc-link" routerLink="/bien">Voir tous →</a>
+        </div>
+
+        <div class="stat-card">
+          <div class="sc-top">
+            <div class="sc-icon ico-orange"><i class="ti ti-credit-card"></i></div>
+            <span class="sc-delta delta-up">↑ Payés</span>
+          </div>
+          <div class="sc-val">{{ stats.loyersEncaisses }}</div>
+          <div class="sc-lbl">Loyers encaissés</div>
+          <div class="sc-sub">FCFA ce mois-ci</div>
+          <a class="sc-link" routerLink="/paiement">Voir tous →</a>
+        </div>
+
+        <div class="stat-card">
+          <div class="sc-top">
+            <div class="sc-icon ico-purple"><i class="ti ti-file-text"></i></div>
+            <span class="sc-delta"
+              [ngClass]="stats.contratsExpiration > 0 ? 'delta-down' : 'delta-up'">
+              {{ stats.contratsExpiration > 0
+                ? '↓ ' + stats.contratsExpiration + ' expirent'
+                : '✓ À jour' }}
+            </span>
+          </div>
+          <div class="sc-val">{{ stats.contratsActifs }}</div>
+          <div class="sc-lbl">Contrats actifs</div>
+          <div class="sc-sub">
+            {{ stats.contratsExpiration }} expirent ce mois
+          </div>
+          <a class="sc-link" routerLink="/contrat">Voir tous →</a>
+        </div>
+
+      </div>
+
+      <!-- ── GRAPHIQUES ── -->
+      <div class="charts-grid">
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Loyers encaissés — 6 mois</div>
+              <div class="card-sub">Évolution mensuelle en FCFA</div>
+            </div>
+            <span class="card-badge">Ce mois : {{ stats.loyersEncaisses }} FCFA</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="chartLoyers"
+              role="img"
+              aria-label="Graphique en barres des loyers encaissés sur 6 mois">
+            </canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Répartition des biens</div>
+              <div class="card-sub">Par type — Total {{ stats.biensActifs }}</div>
+            </div>
+          </div>
+          <div class="chart-legend">
+            <span class="legend-item">
+              <span class="legend-dot" style="background:#2563eb"></span>
+              Maisons ({{ chartRepartition.data[0] }})
+            </span>
+            <span class="legend-item">
+              <span class="legend-dot" style="background:#7c3aed"></span>
+              Apparts ({{ chartRepartition.data[1] }})
+            </span>
+            <span class="legend-item">
+              <span class="legend-dot" style="background:#0d9488"></span>
+              Studios ({{ chartRepartition.data[2] }})
+            </span>
+          </div>
+          <div class="chart-wrap-sm">
+            <canvas id="chartRep"
+              role="img"
+              aria-label="Répartition des biens par type de logement">
+            </canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── TABLEAUX ── -->
+      <div class="tables-grid">
+
+        <!-- Contrats récents -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Contrats récents</div>
+            <button class="btn-voir-tout" routerLink="/contrat">
+              Voir tout <i class="ti ti-arrow-right"></i>
+            </button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Locataire</th>
+                  <th>Bien</th>
+                  <th>Loyer</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- *ngFor sur les données calculées dans le .ts -->
+                <tr *ngFor="let c of contratsRows">
+                  <td>
+                    <div class="td-name">
+                      <div class="td-avatar">{{ c.initiales }}</div>
+                      <span class="td-bold">{{ c.nomLocataire }}</span>
+                    </div>
+                  </td>
+                  <td>{{ c.nomBien }}</td>
+                  <td>{{ c.loyer }}</td>
+                  <td>
+                    <span class="pill" [ngClass]="c.statutClass">
+                      {{ c.statut }}
+                    </span>
+                  </td>
+                  <td>
+                    <i class="ti ti-eye action-icon"
+                       routerLink="/contrat"
+                       title="Voir détails"></i>
+                  </td>
+                </tr>
+                <!-- Message si vide -->
+                <tr *ngIf="contratsRows.length === 0">
+                  <td colspan="5" class="empty-msg">
+                    Aucun contrat créé pour l'instant
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Paiements récents -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Paiements récents</div>
+            <button class="btn-voir-tout" routerLink="/paiement">
+              Voir tout <i class="ti ti-arrow-right"></i>
+            </button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Locataire</th>
+                  <th>Mois</th>
+                  <th>Montant (FCFA)</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let p of paiementsRows">
+                  <td>
+                    <div class="td-name">
+                      <div class="td-avatar">{{ p.initiales }}</div>
+                      <span class="td-bold">{{ p.locataire }}</span>
+                    </div>
+                  </td>
+                  <td>{{ p.mois }}</td>
+                  <td>{{ p.montant }}</td>
+                  <td>
+                    <span class="pill" [ngClass]="p.statutClass">
+                      {{ p.statut }}
+                    </span>
+                  </td>
+                </tr>
+                <tr *ngIf="paiementsRows.length === 0">
+                  <td colspan="4" class="empty-msg">
+                    Aucun paiement enregistré pour l'instant
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>

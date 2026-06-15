@@ -1,0 +1,197 @@
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-logo">
+    <div class="logo-icon"><i class="ti ti-building"></i></div>
+    <div class="logo-text">
+      <span class="name">Eli<span class="accent">Estate</span></span>
+      <span class="sub">Gestion Immobilière</span>
+    </div>
+  </div>
+  <ul class="nav-links">
+    <li><a routerLink="/home">Accueil</a></li>
+    <li><a routerLink="/biens-publics" class="active">Biens disponibles</a></li>
+    <li><a routerLink="/apropos">À propos</a></li>
+    <li><a routerLink="/contact">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-phone"><i class="ti ti-phone"></i>{{ telephone }}</div>
+    <button class="btn-login" routerLink="/login">
+      <i class="ti ti-user"></i> Se connecter
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="page-hero biens-hero">
+  <div class="page-hero-overlay"></div>
+  <div class="page-hero-content">
+    <div class="page-badge">Biens disponibles</div>
+    <h1>Trouvez votre <span class="accent-light">logement idéal</span></h1>
+    <p>Découvrez notre sélection de biens disponibles à Yaoundé et environs.</p>
+    <div class="hero-stats" *ngIf="!loading">
+      <div class="hstat">
+        <span class="hstat-val">{{ biens.length }}</span>
+        <span class="hstat-lbl">Biens disponibles</span>
+      </div>
+      <div class="hstat">
+        <span class="hstat-val">{{ quartiers.length }}</span>
+        <span class="hstat-lbl">Quartiers</span>
+      </div>
+      <div class="hstat">
+        <span class="hstat-val">{{ types.length }}</span>
+        <span class="hstat-lbl">Types de biens</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BARRE DE RECHERCHE -->
+<div class="search-bar">
+  <div class="search-field">
+    <div class="sf-icon"><i class="ti ti-home"></i></div>
+    <div class="sf-content">
+      <div class="sf-label">Type de bien</div>
+      <select class="sf-select" [(ngModel)]="filtreType" (ngModelChange)="appliquerFiltres()">
+        <option value="">Tous les types</option>
+        <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+      </select>
+    </div>
+  </div>
+  <div class="search-divider"></div>
+  <div class="search-field">
+    <div class="sf-icon"><i class="ti ti-map-pin"></i></div>
+    <div class="sf-content">
+      <div class="sf-label">Localisation</div>
+      <select class="sf-select" [(ngModel)]="filtreLoc" (ngModelChange)="appliquerFiltres()">
+        <option value="">Tous les quartiers</option>
+        <option *ngFor="let q of quartiers" [value]="q">{{ q }}</option>
+      </select>
+    </div>
+  </div>
+  <div class="search-divider"></div>
+  <div class="search-field">
+    <div class="sf-icon"><i class="ti ti-coin"></i></div>
+    <div class="sf-content">
+      <div class="sf-label">Budget max (FCFA)</div>
+      <select class="sf-select" [(ngModel)]="filtreBudget" (ngModelChange)="appliquerFiltres()">
+        <option value="">Budget illimité</option>
+        <option value="50000">- 50 000</option>
+        <option value="100000">- 100 000</option>
+        <option value="200000">- 200 000</option>
+        <option value="500000">- 500 000</option>
+      </select>
+    </div>
+  </div>
+  <button class="btn-search" (click)="appliquerFiltres()">
+    <i class="ti ti-search"></i> Rechercher
+  </button>
+</div>
+
+<!-- CONTENU -->
+<div class="main-content-public">
+
+  <!-- ERREUR -->
+  <div class="alert-error" *ngIf="erreur">
+    <i class="ti ti-alert-circle"></i>{{ erreur }}
+    <button (click)="chargerBiens()">Réessayer</button>
+  </div>
+
+  <!-- CHARGEMENT -->
+  <div class="loading" *ngIf="loading">
+    <i class="ti ti-refresh spin"></i> Chargement des biens…
+  </div>
+
+  <ng-container *ngIf="!loading && !erreur">
+
+    <!-- FILTRES SECONDAIRES -->
+    <div class="filters-row">
+      <span class="results-count">{{ biensFiltres.length }} résultat(s)</span>
+      <select class="sort-select" [(ngModel)]="tri" (ngModelChange)="appliquerFiltres()">
+        <option value="recent">Plus récent</option>
+        <option value="prix-asc">Prix croissant</option>
+        <option value="prix-desc">Prix décroissant</option>
+      </select>
+      <div class="view-btns">
+        <button class="vb-btn" [ngClass]="{active: vue === 'grille'}" (click)="vue = 'grille'">
+          <i class="ti ti-grid-dots"></i>
+        </button>
+        <button class="vb-btn" [ngClass]="{active: vue === 'liste'}" (click)="vue = 'liste'">
+          <i class="ti ti-list"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- GRILLE -->
+    <div class="biens-grid" *ngIf="vue === 'grille'">
+      <div class="bien-card" *ngFor="let b of biensFiltres" [routerLink]="['/biens-publics', b.id]">
+        <div class="bc-img">
+          <img [src]="getImageUrl(b)" [alt]="b.nom" loading="lazy" />
+          <span class="bc-badge" [ngClass]="getBadgeClass(b.statut)">{{ b.statut }}</span>
+          <button class="bc-fav" (click)="$event.stopPropagation(); toggleFavori(b.id)">
+            <i class="ti" [ngClass]="isFavori(b.id) ? 'ti-heart-filled' : 'ti-heart'"
+               [style.color]="isFavori(b.id) ? '#ef4444' : '#94a3b8'"></i>
+          </button>
+        </div>
+        <div class="bc-body">
+          <div class="bc-nom">{{ b.nom }}</div>
+          <div class="bc-loc"><i class="ti ti-map-pin"></i>{{ b.localisation }}</div>
+          <div class="bc-details">
+            <span><i class="ti ti-bed"></i>{{ b.chambres }} ch.</span>
+            <span><i class="ti ti-bath"></i>{{ b.bains }} sdb</span>
+            <span><i class="ti ti-ruler"></i>{{ b.superficie }} m²</span>
+            <span><i class="ti ti-tag"></i>{{ b.type }}</span>
+          </div>
+          <div class="bc-footer">
+            <div class="bc-prix">{{ b.loyer_mensuel }} <small>FCFA/mois</small></div>
+            <button class="btn-detail">Voir détails</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-grid" *ngIf="biensFiltres.length === 0">
+        <i class="ti ti-building-off"></i>
+        Aucun bien ne correspond à votre recherche
+      </div>
+    </div>
+
+    <!-- LISTE -->
+    <div class="biens-liste" *ngIf="vue === 'liste'">
+      <div class="bien-row" *ngFor="let b of biensFiltres" [routerLink]="['/biens-publics', b.id]">
+        <div class="br-img">
+          <img [src]="getImageUrl(b)" [alt]="b.nom" loading="lazy" />
+          <span class="bc-badge" [ngClass]="getBadgeClass(b.statut)">{{ b.statut }}</span>
+        </div>
+        <div class="br-body">
+          <div class="bc-nom">{{ b.nom }}</div>
+          <div class="bc-loc"><i class="ti ti-map-pin"></i>{{ b.localisation }}</div>
+          <div class="bc-details">
+            <span><i class="ti ti-bed"></i>{{ b.chambres }} ch.</span>
+            <span><i class="ti ti-bath"></i>{{ b.bains }} sdb</span>
+            <span><i class="ti ti-ruler"></i>{{ b.superficie }} m²</span>
+            <span><i class="ti ti-tag"></i>{{ b.type }}</span>
+          </div>
+        </div>
+        <div class="br-footer">
+          <div class="bc-prix">{{ b.loyer_mensuel }} <small>FCFA/mois</small></div>
+          <button class="btn-detail">Voir détails</button>
+        </div>
+      </div>
+
+      <div class="empty-grid" *ngIf="biensFiltres.length === 0">
+        <i class="ti ti-building-off"></i>
+        Aucun bien ne correspond à votre recherche
+      </div>
+    </div>
+
+  </ng-container>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <span class="footer-brand">Eli<span class="accent">Estate</span></span>
+  <span class="footer-copy">© 2024 EliEstate — Tous droits réservés</span>
+  <div class="footer-links">
+    <a href="#">Confidentialité</a>
+    <a routerLink="/contact">Contact</a>
+  </div>
+</footer>

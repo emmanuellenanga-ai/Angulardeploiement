@@ -1,0 +1,277 @@
+<div class="rapport-page">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-box"><i class="ti ti-building"></i></div>
+      <div>
+        <div class="sb-logo-name">Eli<span class="accent">Estate</span></div>
+        <div class="sb-logo-sub">Gestion Immobilière</div>
+      </div>
+    </div>
+    <div class="sb-divider"></div>
+    <nav class="sb-nav">
+      <ng-container *ngFor="let item of sidebarItems; let i = index">
+        <div class="sb-section"
+          *ngIf="i === 0 || item.section !== sidebarItems[i-1].section">
+          {{ item.section }}
+        </div>
+        <a class="sb-item"
+          [ngClass]="{active: item.active}"
+          [routerLink]="item.route"
+          (click)="setActive(i)">
+          <i [class]="item.icone"></i>{{ item.label }}
+        </a>
+      </ng-container>
+    </nav>
+    <div class="sb-bottom">
+      <div class="sb-user">
+        <div class="sb-avatar">AD</div>
+        <div>
+          <div class="sb-user-name">Admin</div>
+          <div class="sb-user-role">Administrateur</div>
+        </div>
+        <i class="ti ti-logout sb-logout"(click)="deconnecter()"title="Se déconnecter"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENU -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="tb-left">
+        <h1>Rapports & Analyses</h1>
+        <p>Vue d'ensemble de vos performances</p>
+      </div>
+      <div class="tb-right">
+        <!-- Sélecteur de période -->
+        <div class="period-tabs">
+          <button
+            *ngFor="let p of periodes"
+            class="period-btn"
+            [ngClass]="{active: periodeActive === p.val}"
+            (click)="changerPeriode(p.val)">
+            {{ p.label }}
+          </button>
+        </div>
+        <div class="tb-btn" title="Exporter PDF" (click)="exporterPDF()">
+          <i class="ti ti-download"></i>
+        </div>
+        <div class="tb-avatar">AD</div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- EN-TÊTE -->
+      <div class="page-header">
+        <div>
+          <h2>Rapport financier</h2>
+          <p class="page-sub">Période : {{ periodeLabel }}</p>
+        </div>
+        <button class="btn-export" (click)="exporterPDF()">
+          <i class="ti ti-download"></i> Exporter PDF
+        </button>
+      </div>
+
+      <!-- ERREUR -->
+      <div class="alert-error" *ngIf="erreur">
+        <i class="ti ti-alert-circle"></i>{{ erreur }}
+        <button (click)="chargerRapport()">Réessayer</button>
+      </div>
+
+      <!-- CHARGEMENT -->
+      <div class="loading" *ngIf="loading">
+        <i class="ti ti-refresh spin"></i> Calcul du rapport…
+      </div>
+
+      <ng-container *ngIf="!loading && !erreur && rapport">
+
+        <!-- KPIs -->
+        <div class="kpi-grid">
+
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <div class="kpi-icon ico-blue"><i class="ti ti-credit-card"></i></div>
+              <span class="kpi-delta delta-up">↑ Encaissé</span>
+            </div>
+            <div class="kpi-val">{{ revenusFormates }} FCFA</div>
+            <div class="kpi-lbl">Revenus encaissés</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <div class="kpi-icon ico-green"><i class="ti ti-building"></i></div>
+              <span class="kpi-delta delta-up">{{ rapport.tauxOccupation }}%</span>
+            </div>
+            <div class="kpi-val">{{ rapport.biensOccupes }}/{{ rapport.biensTotal }}</div>
+            <div class="kpi-lbl">Biens occupés / Total</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <div class="kpi-icon ico-amber"><i class="ti ti-alert-circle"></i></div>
+              <span class="kpi-delta delta-down"
+                *ngIf="rapport.impayes.length > 0">
+                {{ rapport.impayes.length }} impayé(s)
+              </span>
+            </div>
+            <div class="kpi-val">{{ montantImpayeFormate }} FCFA</div>
+            <div class="kpi-lbl">Montant impayé</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <div class="kpi-icon ico-purple"><i class="ti ti-chart-pie"></i></div>
+              <span class="kpi-delta"
+                [ngClass]="rapport.tauxRecouvrement >= 80 ? 'delta-up' : 'delta-down'">
+                {{ rapport.tauxRecouvrement >= 80 ? '✓ Bon' : '↓ Faible' }}
+              </span>
+            </div>
+            <div class="kpi-val">{{ rapport.tauxRecouvrement }}%</div>
+            <div class="kpi-lbl">Taux de recouvrement</div>
+          </div>
+
+        </div>
+
+        <!-- GRAPHIQUES -->
+        <div class="charts-grid">
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Revenus mensuels</div>
+                <div class="card-sub">Loyers encaissés vs attendus</div>
+              </div>
+              <div class="chart-legend">
+                <span class="legend-item">
+                  <span class="legend-dot" style="background:#2563eb"></span>Encaissé
+                </span>
+                <span class="legend-item">
+                  <span class="legend-dot" style="background:#bfdbfe"></span>Attendu
+                </span>
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="chartRevenus"
+                role="img"
+                aria-label="Graphique revenus mensuels encaissés vs attendus">
+              </canvas>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Répartition revenus</div>
+                <div class="card-sub">Par type de bien</div>
+              </div>
+            </div>
+            <div class="chart-legend">
+              <span class="legend-item">
+                <span class="legend-dot" style="background:#2563eb"></span>Maisons
+              </span>
+              <span class="legend-item">
+                <span class="legend-dot" style="background:#7c3aed"></span>Apparts
+              </span>
+              <span class="legend-item">
+                <span class="legend-dot" style="background:#0d9488"></span>Studios
+              </span>
+            </div>
+            <div class="chart-wrap-sm">
+              <canvas id="chartRepartition"
+                role="img"
+                aria-label="Répartition des revenus par type de bien">
+              </canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TABLEAUX -->
+        <div class="tables-grid">
+
+          <!-- Top 5 biens -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Top 5 biens par revenus</div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Bien</th>
+                    <th>Localisation</th>
+                    <th>Revenus (FCFA)</th>
+                    <th>Statut</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let b of rapport.topBiens; let i = index">
+                    <td class="td-rank">{{ i + 1 }}</td>
+                    <td class="td-bold">{{ b.nom }}</td>
+                    <td class="td-muted">{{ b.localisation }}</td>
+                    <td class="td-prix">{{ b.loyer.toLocaleString('fr-FR') }}</td>
+                    <td>
+                      <span class="badge" [ngClass]="getBadgeClass(b.statut)">
+                        {{ b.statut }}
+                      </span>
+                    </td>
+                  </tr>
+                  <tr *ngIf="rapport.topBiens.length === 0">
+                    <td colspan="5" class="empty-msg">Aucune donnée</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Suivi impayés -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Suivi des impayés</div>
+              <span class="card-badge-red" *ngIf="rapport.impayes.length > 0">
+                {{ rapport.impayes.length }} impayé(s)
+              </span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Locataire</th>
+                    <th>Bien</th>
+                    <th>Montant (FCFA)</th>
+                    <th>Retard</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let imp of rapport.impayes">
+                    <td class="td-bold">{{ imp.nomLocataire }}</td>
+                    <td class="td-muted">{{ imp.nomBien }}</td>
+                    <td class="td-danger">{{ imp.montant.toLocaleString('fr-FR') }}</td>
+                    <td>
+                      <span class="badge badge-red">{{ imp.retard }}</span>
+                    </td>
+                  </tr>
+                  <tr *ngIf="rapport.impayes.length === 0">
+                    <td colspan="4" class="empty-msg success-msg">
+                      <i class="ti ti-circle-check"></i>
+                      Aucun impayé — tout est à jour !
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+      </ng-container>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>

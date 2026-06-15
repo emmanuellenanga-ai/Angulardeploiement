@@ -1,0 +1,128 @@
+<div class="demandes-page">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-box"><i class="ti ti-building"></i></div>
+      <div>
+        <div class="sb-logo-name">Eli<span class="accent">Estate</span></div>
+        <div class="sb-logo-sub">Gestion Immobilière</div>
+      </div>
+    </div>
+    <div class="sb-divider"></div>
+    <nav class="sb-nav">
+      <ng-container *ngFor="let item of sidebarItems; let i = index">
+        <div class="sb-section"
+          *ngIf="i === 0 || item.section !== sidebarItems[i-1].section">
+          {{ item.section }}
+        </div>
+        <a class="sb-item" [ngClass]="{active: item.active}"
+          [routerLink]="item.route" (click)="setActive(i)">
+          <i [class]="item.icone"></i>{{ item.label }}
+          <span class="sb-badge" *ngIf="item.badge">{{ item.badge }}</span>
+        </a>
+      </ng-container>
+    </nav>
+    <div class="sb-bottom">
+      <div class="sb-user">
+        <div class="sb-avatar">AD</div>
+        <div>
+          <div class="sb-user-name">Admin</div>
+          <div class="sb-user-role">Administrateur</div>
+        </div>
+        <i class="ti ti-logout sb-logout" routerLink="/login"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENU -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="tb-left">
+        <h1>Demandes de visite</h1>
+        <p>Les visiteurs intéressés par vos biens</p>
+      </div>
+      <div class="tb-right">
+        <div class="tb-btn"><i class="ti ti-bell"></i></div>
+        <div class="tb-avatar">AD</div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <div class="page-header">
+        <div>
+          <h2>Demandes reçues</h2>
+          <p class="page-sub">{{ demandesRows.length }} demande(s) au total</p>
+        </div>
+      </div>
+
+      <div class="alert-error" *ngIf="erreur">
+        <i class="ti ti-alert-circle"></i>{{ erreur }}
+        <button (click)="chargerDemandes()">Réessayer</button>
+      </div>
+
+      <div class="loading" *ngIf="loading">
+        <i class="ti ti-refresh spin"></i> Chargement…
+      </div>
+
+      <ng-container *ngIf="!loading && !erreur">
+
+        <!-- FILTRES -->
+        <div class="filters-row">
+          <button class="filter-btn" [ngClass]="{active: filtreStatut === ''}"
+            (click)="filtreStatut = ''">Toutes</button>
+          <button class="filter-btn" [ngClass]="{active: filtreStatut === 'nouvelles'}"
+            (click)="filtreStatut = 'nouvelles'">Nouvelles</button>
+          <button class="filter-btn" [ngClass]="{active: filtreStatut === 'traitees'}"
+            (click)="filtreStatut = 'traitees'">Traitées</button>
+        </div>
+
+        <!-- CARTES DEMANDES -->
+        <div class="demandes-grid">
+          <div class="demande-card" *ngFor="let d of demandesFiltrees"
+            [ngClass]="{nouvelle: !d.traite}">
+
+            <div class="dc-header">
+              <div>
+                <div class="dc-bien"><i class="ti ti-building"></i>{{ d.nomBien }}</div>
+                <div class="dc-date">{{ d.dateCreation }}</div>
+              </div>
+              <span class="badge" [ngClass]="d.traite ? 'badge-green' : 'badge-amber'">
+                {{ d.traite ? 'Traitée' : 'Nouvelle' }}
+              </span>
+            </div>
+
+            <div class="dc-body">
+              <div class="dc-row"><i class="ti ti-user"></i>{{ d.nomDemandeur }}</div>
+              <div class="dc-row"><i class="ti ti-phone"></i>{{ d.telephone }}</div>
+              <div class="dc-row"><i class="ti ti-mail"></i>{{ d.email }}</div>
+              <div class="dc-row" *ngIf="d.dateSouhaitee !== '—'">
+                <i class="ti ti-calendar"></i>Visite souhaitée le {{ d.dateSouhaitee }}
+              </div>
+              <div class="dc-message" *ngIf="d.message">{{ d.message }}</div>
+            </div>
+
+            <div class="dc-footer">
+              <a [href]="'tel:' + d.telephone" class="dc-btn">
+                <i class="ti ti-phone"></i> Appeler
+              </a>
+              <a [href]="'mailto:' + d.email" class="dc-btn">
+                <i class="ti ti-mail"></i> Email
+              </a>
+              <button class="dc-btn primary" *ngIf="!d.traite" (click)="marquerTraite(d.id)">
+                <i class="ti ti-check"></i> Marquer traitée
+              </button>
+            </div>
+          </div>
+
+          <div class="empty-msg" *ngIf="demandesFiltrees.length === 0">
+            <i class="ti ti-calendar-off"></i>
+            Aucune demande {{ filtreStatut === 'nouvelles' ? 'nouvelle' : filtreStatut === 'traitees' ? 'traitée' : '' }}
+          </div>
+        </div>
+
+      </ng-container>
+    </div>
+  </div>
+</div>

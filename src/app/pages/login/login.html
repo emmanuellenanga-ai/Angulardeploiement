@@ -1,0 +1,124 @@
+<div class="login-page">
+
+    <div class="login-card">
+        
+        <div class="card-left">
+
+        <div class="left-logo">
+            <div class="left-logo-box">
+                <i class="ti ti-building-estate"></i>
+            </div>
+            <div class="left-logo-text">
+                <span class="left-logo-name">Eli <span class="accent-light">Estate</span></span>
+                <span class="left-logo-sub">Gestion Immobilière</span>
+            </div>
+        </div>
+        <div class="left-bottom">
+            <div class="left-badge">
+                <span class="bagde-dot">Platforme de confiance</span>
+            </div>
+            <h2 class="left-title">
+                Bienvenue <br>
+                <span class="accent-light">Connectez vous</span> à votre espace
+            </h2>
+            <p class="left-sub">
+                Gérez vos biens, contrats, loyers et locataires 
+                depuis un tableau de bord centralisé et intuitif.
+            </p>
+            <p class="left-copy">© 2024 EliEstate — Tous droits réservés</p>
+        </div>
+
+
+        </div>
+
+
+        <div class="card-right">
+
+        <div class="form-logo">
+            <div class="form-logo-box">
+                <i class="ti ti-building-estate"></i>
+            </div>
+            <span class="form-logo-name">Eli<span class="accent" >Estate</span></span>
+        </div>
+
+        <div class="form-welcome">
+            <h1>Bienvenue !</h1>
+            <p>Connectez-vous à votre espace</p>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="email">email</label>
+            <div class="input-wrap">
+                <i class="ti ti-mail input-icon"></i>
+                <input
+                id="email" class="form-input " type="email"
+                placeholder="Votre email"
+                [(ngModel)]="email"
+                (keyup.enter)="onLogin()"
+                autocomplete="email"
+                />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="password">Mot de passe</label>
+            <div class="input-wrap">
+                <i class="ti ti-lock input-icon"></i>
+                <input
+                id="password" class="form-input " 
+                [type]="showPassword ? 'text' : 'password'"
+                placeholder="••••••••"
+                [(ngModel)]="motDePasse"
+                (keyup.enter)="onLogin()"
+                autocomplete="current-password"
+                />
+                <i class="ti input-eye"
+                [class]="showPassword ? 'ti ti-eye-off input-eye' : 'ti ti-eye input-eye'"
+                (click)="togglePassword()"></i>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <label class="check-wrap">
+                <input type="checkbox" [(ngModel)]="sesouvenir"/>
+                Se souvenir de moi
+            </label>
+            <a href="#" class="forgot-link">Mot de passe oublié ?</a>
+        </div>
+        <div class="form-error" *ngIf="erreur">
+            <i class="ti ti-alert-circle"></i>
+            {{erreur}}
+        </div>
+
+        <button class="btn-connect" (click)="onLogin()"
+        [disabled]="loading" [class.loading]="loading">
+         <ng-container *ngIf="!loading">
+            <i class="ti ti-login"></i> Se connecter
+        </ng-container>
+        <ng-container *ngIf="loading">
+            <i class="ti ti-loader spin"></i>Connexion en cours...
+        </ng-container>
+       </button>
+
+       <div class="form-divider">
+        <div class="div-line"></div>
+        <span class="div-text">ou</span>
+        <div class="div-line"></div>
+       </div>
+
+       <p class="no-account">
+        Pas encore de compte ?
+        <a routerLink="/contact ">Contacter l'administrateur</a>
+       </p>
+
+       <p class="Contact-admin">
+        <i class="ti ti-mail"></i>
+        <a href="mailto:emmanuelleeliseen@icloud.com">admin@eliestate</a>
+       </p>
+
+       <p class="for-copy"> 2024 EliEstate — Tous droits réservés</p>
+    </div>
+    
+</div>
+
+   
+</div>

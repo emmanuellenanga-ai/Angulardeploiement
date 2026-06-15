@@ -1,0 +1,393 @@
+<div class="bien-page">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-box"><i class="ti ti-building"></i></div>
+      <div>
+        <div class="sb-logo-name">Eli<span class="accent">Estate</span></div>
+        <div class="sb-logo-sub">Gestion Immobilière</div>
+      </div>
+    </div>
+    <div class="sb-divider"></div>
+    <nav class="sb-nav">
+      <div class="sb-section">Principal</div>
+      <a class="sb-item" *ngFor="let item of sidebarItems.slice(0,5); let i = index"
+        [ngClass]="{active: item.active}"
+        [routerLink]="item.route"
+        (click)="setActive(i)">
+        <i [class]="item.icone"></i>{{ item.label }}
+      </a>
+      <div class="sb-section" style="margin-top:.5rem">Analyse</div>
+      <a class="sb-item" *ngFor="let item of sidebarItems.slice(5); let i = index"
+        [ngClass]="{active: item.active}"
+        [routerLink]="item.route">
+        <i [class]="item.icone"></i>{{ item.label }}
+      </a>
+    </nav>
+    <div class="sb-bottom">
+      <div class="sb-user">
+        <div class="sb-avatar">AD</div>
+        <div>
+          <div class="sb-user-name">Admin</div>
+          <div class="sb-user-role">Administrateur</div>
+        </div>
+        <i class="ti ti-logout sb-logout"(click)="deconnecter()"title="Se déconnecter"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENU -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="tb-left">
+        <h1>Gestion des biens</h1>
+        <p>Liste de tous vos biens immobiliers</p>
+      </div>
+      <div class="tb-right">
+        <div class="tb-search">
+          <i class="ti ti-search"></i>
+          <input type="text" placeholder="Rechercher…" />
+        </div>
+        <div class="tb-btn"><i class="ti ti-bell"></i></div>
+        <div class="tb-avatar">AD</div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- EN-TÊTE PAGE -->
+      <div class="page-header">
+        <div>
+          <h2>Liste des biens</h2>
+          <p class="page-sub">{{ biens.length }} bien(s) enregistré(s)</p>
+        </div>
+        <button class="btn-add" (click)="ouvrirAjout()">
+          <i class="ti ti-plus"></i> Ajouter un bien
+        </button>
+      </div>
+
+      <!-- ERREUR -->
+      <div class="alert-error" *ngIf="erreur">
+        <i class="ti ti-alert-circle"></i>{{ erreur }}
+        <button (click)="chargerBiens()">Réessayer</button>
+      </div>
+
+      <!-- CHARGEMENT -->
+      <div class="loading" *ngIf="loading">
+        <i class="ti ti-refresh spin"></i> Chargement…
+      </div>
+
+      <ng-container *ngIf="!loading && !erreur">
+
+        <!-- FILTRES -->
+        <div class="filters-row">
+          <div class="filter-search">
+            <i class="ti ti-search"></i>
+            <input type="text"
+              placeholder="Rechercher un bien…"
+              [(ngModel)]="recherche"
+              (ngModelChange)="appliquerFiltres()" />
+          </div>
+          <select class="filter-select"
+            [(ngModel)]="filtreStatut"
+            (ngModelChange)="appliquerFiltres()">
+            <option value="">Tous les statuts</option>
+            <option value="Disponible">Disponible</option>
+            <option value="Occupé">Occupé</option>
+            <option value="En travaux">En travaux</option>
+          </select>
+          <select class="filter-select"
+            [(ngModel)]="filtreType"
+            (ngModelChange)="appliquerFiltres()">
+            <option value="">Tous les types</option>
+            <option value="Maison">Maison</option>
+            <option value="Appartement">Appartement</option>
+            <option value="Studio">Studio</option>
+          </select>
+          <div class="view-btns">
+            <button class="vb-btn" [ngClass]="{active: vue === 'liste'}"
+              (click)="vue = 'liste'" title="Vue liste">
+              <i class="ti ti-list"></i>
+            </button>
+            <button class="vb-btn" [ngClass]="{active: vue === 'grille'}"
+              (click)="vue = 'grille'" title="Vue grille">
+              <i class="ti ti-grid-dots"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- MINI STATS -->
+        <div class="stats-mini">
+          <div class="sm-card">
+            <div class="sm-icon ico-blue"><i class="ti ti-building"></i></div>
+            <div><div class="sm-val">{{ stats.total }}</div><div class="sm-lbl">Total biens</div></div>
+          </div>
+          <div class="sm-card">
+            <div class="sm-icon ico-green"><i class="ti ti-home"></i></div>
+            <div><div class="sm-val">{{ stats.occupes }}</div><div class="sm-lbl">Occupés</div></div>
+          </div>
+          <div class="sm-card">
+            <div class="sm-icon ico-blue2"><i class="ti ti-home"></i></div>
+            <div><div class="sm-val">{{ stats.disponibles }}</div><div class="sm-lbl">Disponibles</div></div>
+          </div>
+          <div class="sm-card">
+            <div class="sm-icon ico-amber"><i class="ti ti-tool"></i></div>
+            <div><div class="sm-val">{{ stats.travaux }}</div><div class="sm-lbl">En travaux</div></div>
+          </div>
+        </div>
+
+        <!-- VUE LISTE -->
+        <div class="table-card" *ngIf="vue === 'liste'">
+          <div class="tc-header">
+            <span class="tc-title">Biens immobiliers</span>
+            <span class="tc-count">{{ biensFiltres.length }} résultat(s)</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:50px">Image</th>
+                  <th>Bien</th>
+                  <th>Type</th>
+                  <th>Localisation</th>
+                  <th>Loyer (FCFA)</th>
+                  <th>Chambres</th>
+                  <th>Superficie</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let b of biensPagines">
+                  <td>
+                    <div class="td-img">
+                      <img *ngIf="b.image" [src]="b.image" [alt]="b.titre" loading="lazy" />
+                      <div *ngIf="!b.image" class="td-img-placeholder">
+                        <i class="ti ti-building"></i>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="td-nom">{{ b.titre }}</div>
+                  </td>
+                  <td>{{ b.categorie }}</td>
+                  <td>
+                    <div class="td-loc">
+                      <i class="ti ti-map-pin"></i>{{ b.quartier_nom }}
+                    </div>
+                  </td>
+                  <td class="td-prix">{{ b.loyer_mensuel | number:'1.2-2' }}</td>
+                  <td>
+                    <div class="td-detail">
+                      <i class="ti ti-bed"></i>{{ b.nombre_chambre }}
+                    </div>
+                  </td>
+                  <td>{{ b.surface }} m²</td>
+                  <td>
+                    <span class="badge" [ngClass]="getBadgeClass(b.statut)">
+                      {{ b.statut }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="actions">
+                      <button class="act-btn" title="Voir" [routerLink]="['/bien', b.id]">
+                        <i class="ti ti-eye"></i>
+                      </button>
+                      <button class="act-btn" title="Modifier" (click)="ouvrirModifier(b)">
+                        <i class="ti ti-edit"></i>
+                      </button>
+                      <button class="act-btn danger" title="Supprimer"
+                        (click)="confirmerSuppression(b.id!)">
+                        <i class="ti ti-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="biensFiltres.length === 0">
+                  <td colspan="9" class="empty-msg">
+                    <i class="ti ti-building-off"></i>
+                    Aucun bien trouvé
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- PAGINATION -->
+          <div class="pagination" *ngIf="totalPages > 1">
+            <span class="pag-info">
+              Affichage {{ (pageActuelle-1)*parPage+1 }}–{{ Math.min(pageActuelle*parPage, biensFiltres.length) }}
+              sur {{ biensFiltres.length }}
+            </span>
+            <div class="pag-btns">
+              <button class="pag-btn" (click)="changerPage(pageActuelle-1)"
+                [disabled]="pageActuelle === 1">
+                <i class="ti ti-chevron-left"></i>
+              </button>
+              <button class="pag-btn"
+                *ngFor="let p of pages"
+                [ngClass]="{active: p === pageActuelle}"
+                (click)="changerPage(p)">
+                {{ p }}
+              </button>
+              <button class="pag-btn" (click)="changerPage(pageActuelle+1)"
+                [disabled]="pageActuelle === totalPages">
+                <i class="ti ti-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- VUE GRILLE -->
+        <div class="biens-grille" *ngIf="vue === 'grille'">
+          <div class="bien-card" *ngFor="let b of biensPagines">
+            <div class="bc-img">
+              <img *ngIf="b.image" [src]="b.image" [alt]="b.titre" loading="lazy" />
+              <div *ngIf="!b.image" class="bc-img-placeholder">
+                <i class="ti ti-building"></i>
+              </div>
+              <span class="badge bc-badge" [ngClass]="getBadgeClass(b.statut)">
+                {{ b.statut }}
+              </span>
+            </div>
+            <div class="bc-body">
+              <div class="bc-nom">{{ b.titre }}</div>
+              <div class="bc-loc">
+                <i class="ti ti-map-pin"></i>{{ b.quartier_nom }}
+              </div>
+              <div class="bc-details">
+                <span><i class="ti ti-bed"></i>{{ b.nombre_chambre }} ch.</span>
+                <span><i class="ti ti-ruler"></i>{{ b.surface }} m²</span>
+                <span><i class="ti ti-tag"></i>{{ b.categorie }}</span>
+              </div>
+              <div class="bc-footer">
+                <div class="bc-prix">{{ b.loyer_mensuel | number:'1.2-2' }} <small>FCFA/mois</small></div>
+                <div class="actions">
+                  <button class="act-btn" (click)="ouvrirModifier(b)">
+                    <i class="ti ti-edit"></i>
+                  </button>
+                  <button class="act-btn danger" (click)="confirmerSuppression(b.id!)">
+                    <i class="ti ti-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="empty-grille" *ngIf="biensFiltres.length === 0">
+            <i class="ti ti-building-off"></i>
+            Aucun bien trouvé
+          </div>
+        </div>
+
+      </ng-container>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL AJOUTER / MODIFIER ══ -->
+<div class="modal-overlay" *ngIf="showModal" (click)="fermerModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <h3>{{ modeModal === 'ajouter' ? 'Ajouter un bien' : 'Modifier le bien' }}</h3>
+      <button class="modal-close" (click)="fermerModal()">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Titre du bien *</label>
+          <input type="text" [(ngModel)]="bienEnCours.titre"
+            placeholder="Ex: Villa moderne à Bastos" />
+        </div>
+        <div class="form-group">
+          <label>Type *</label>
+          <select [(ngModel)]="bienEnCours.categorie">
+            <option value="Maison">Maison</option>
+            <option value="Appartement">Appartement</option>
+            <option value="Studio">Studio</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Localisation *</label>
+        <input type="text" [(ngModel)]="bienEnCours.quartier_nom"
+          placeholder="Ex: Bastos, Yaoundé" />
+      </div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Loyer mensuel (FCFA) *</label>
+          <input type="number" [(ngModel)]="bienEnCours.loyer_mensuel"
+            placeholder="0" />
+        </div>
+        <div class="form-group">
+          <label>Chambres *</label>
+          <input type="number" [(ngModel)]="bienEnCours.nombre_chambre"
+            placeholder="1" min="1" />
+        </div>
+        <div class="form-group">
+          <label>Superficie (m²) *</label>
+          <input type="number" [(ngModel)]="bienEnCours.surface"
+            placeholder="0" />
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Statut *</label>
+          <select [(ngModel)]="bienEnCours.statut">
+            <option value="Disponible">Disponible</option>
+            <option value="Occupé">Occupé</option>
+            <option value="En travaux">En travaux</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>URL Image (optionnel)</label>
+          <input type="text" [(ngModel)]="bienEnCours.image"
+            placeholder="https://…" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea [(ngModel)]="bienEnCours.description"
+          placeholder="Description du bien…" rows="3"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="fermerModal()">Annuler</button>
+      <button class="btn-save" (click)="soumettre()">
+        <i class="ti ti-check"></i>
+        {{ modeModal === 'ajouter' ? 'Enregistrer' : 'Mettre à jour' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONFIRMATION SUPPRESSION ══ -->
+<div class="modal-overlay" *ngIf="showConfirmSuppr" (click)="annulerSuppression()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Confirmer la suppression</h3>
+      <button class="modal-close" (click)="annulerSuppression()">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-msg">
+        <i class="ti ti-alert-triangle confirm-icon"></i>
+        <p>Voulez-vous vraiment supprimer ce bien ? Cette action est irréversible.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="annulerSuppression()">Annuler</button>
+      <button class="btn-danger" (click)="supprimerConfirme()">
+        <i class="ti ti-trash"></i> Supprimer
+      </button>
+    </div>
+  </div>
+</div>

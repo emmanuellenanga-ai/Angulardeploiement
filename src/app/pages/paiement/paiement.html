@@ -1,0 +1,353 @@
+<div class="paiement-page">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-box"><i class="ti ti-building"></i></div>
+      <div>
+        <div class="sb-logo-name">Eli<span class="accent">Estate</span></div>
+        <div class="sb-logo-sub">Gestion Immobilière</div>
+      </div>
+    </div>
+    <div class="sb-divider"></div>
+    <nav class="sb-nav">
+      <ng-container *ngFor="let item of sidebarItems; let i = index">
+        <div class="sb-section"
+          *ngIf="i === 0 || item.section !== sidebarItems[i-1].section">
+          {{ item.section }}
+        </div>
+        <a class="sb-item"
+          [ngClass]="{active: item.active}"
+          [routerLink]="item.route"
+          (click)="setActive(i)">
+          <i [class]="item.icone"></i>{{ item.label }}
+        </a>
+      </ng-container>
+    </nav>
+    <div class="sb-bottom">
+      <div class="sb-user">
+        <div class="sb-avatar">AD</div>
+        <div>
+          <div class="sb-user-name">Admin</div>
+          <div class="sb-user-role">Administrateur</div>
+        </div>
+        <i class="ti ti-logout sb-logout"(click)="deconnecter()"title="Se déconnecter"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENU -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="tb-left">
+        <h1>Gestion des paiements</h1>
+        <p>Suivi des loyers et encaissements</p>
+      </div>
+      <div class="tb-right">
+        <div class="tb-search">
+          <i class="ti ti-search"></i>
+          <input type="text" placeholder="Rechercher…" />
+        </div>
+        <div class="tb-btn"><i class="ti ti-bell"></i></div>
+        <div class="tb-avatar">AD</div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- EN-TÊTE -->
+      <div class="page-header">
+        <div>
+          <h2>Liste des paiements</h2>
+          <p class="page-sub">{{ paiements.length }} paiement(s) enregistré(s)</p>
+        </div>
+        <button class="btn-add" (click)="ouvrirAjout()">
+          <i class="ti ti-plus"></i> Enregistrer un paiement
+        </button>
+      </div>
+
+      <!-- ERREUR -->
+      <div class="alert-error" *ngIf="erreur">
+        <i class="ti ti-alert-circle"></i>{{ erreur }}
+        <button (click)="chargerDonnees()">Réessayer</button>
+      </div>
+
+      <!-- CHARGEMENT -->
+      <div class="loading" *ngIf="loading">
+        <i class="ti ti-refresh spin"></i> Chargement…
+      </div>
+
+      <ng-container *ngIf="!loading && !erreur">
+
+        <!-- FILTRES -->
+        <div class="filters-row">
+          <div class="filter-search">
+            <i class="ti ti-search"></i>
+            <input type="text"
+              placeholder="Locataire, référence, bien…"
+              [(ngModel)]="recherche"
+              (ngModelChange)="appliquerFiltres()" />
+          </div>
+          <select class="filter-select"
+            [(ngModel)]="filtreStatut"
+            (ngModelChange)="appliquerFiltres()">
+            <option value="">Tous les statuts</option>
+            <option value="Payé">Payé</option>
+            <option value="En attente">En attente</option>
+            <option value="Impayé">Impayé</option>
+          </select>
+          <select class="filter-select"
+            [(ngModel)]="filtreMois"
+            (ngModelChange)="appliquerFiltres()">
+            <option value="">Tous les mois</option>
+            <option *ngFor="let m of moisDisponibles" [value]="m">{{ m }}</option>
+          </select>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="sc-icon ico-blue"><i class="ti ti-credit-card"></i></div>
+            <div>
+              <div class="sc-val">{{ stats.totalEncaisse }} FCFA</div>
+              <div class="sc-lbl">Total encaissé</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-icon ico-green"><i class="ti ti-check"></i></div>
+            <div>
+              <div class="sc-val">{{ stats.nombrePayes }}</div>
+              <div class="sc-lbl">Paiements reçus</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-icon ico-amber"><i class="ti ti-clock"></i></div>
+            <div>
+              <div class="sc-val">{{ stats.enAttente }}</div>
+              <div class="sc-lbl">En attente</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-icon ico-red"><i class="ti ti-alert-circle"></i></div>
+            <div>
+              <div class="sc-val">{{ stats.impayes }}</div>
+              <div class="sc-lbl">Impayés</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABLEAU -->
+        <div class="table-card">
+          <div class="tc-header">
+            <span class="tc-title">Historique des paiements</span>
+            <span class="tc-count">{{ paiementsFiltres.length }} résultat(s)</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Référence</th>
+                  <th>Locataire</th>
+                  <th>Bien</th>
+                  <th>Contrat</th>
+                  <th>Montant (FCFA)</th>
+                  <th>Mois</th>
+                  <th>Date paiement</th>
+                  <th>Mode</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let p of paiementsPagines">
+                  <td class="td-ref">{{ p.reference }}</td>
+                  <td>
+                    <div class="td-locataire">
+                      <div class="td-avatar">{{ p.initialesLocataire }}</div>
+                      <span class="td-nom">{{ p.nomLocataire }}</span>
+                    </div>
+                  </td>
+                  <td class="td-muted">{{ p.nomBien }}</td>
+                  <td class="td-muted">{{ p.refContrat }}</td>
+                  <td class="td-prix">{{ p.montant }}</td>
+                  <td class="td-muted">{{ p.mois }}</td>
+                  <td class="td-muted">{{ p.datePaiement }}</td>
+                  <td class="td-muted">{{ p.modePaiement }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="p.statutClass">{{ p.statut }}</span>
+                  </td>
+                  <td>
+                    <div class="actions">
+                      <button class="act-btn" title="Voir"
+                        [routerLink]="['/paiement', p.id]">
+                        <i class="ti ti-eye"></i>
+                      </button>
+                      <button class="act-btn" title="Télécharger reçu PDF"
+                        (click)="telechargerRecu(p.id)"
+                        [disabled]="p.statut !== 'Payé'">
+                        <i class="ti ti-download"></i>
+                      </button>
+                      <button class="act-btn" title="Modifier"
+                        (click)="ouvrirModifier(p)">
+                        <i class="ti ti-edit"></i>
+                      </button>
+                      <button class="act-btn danger" title="Supprimer"
+                        (click)="confirmerSuppression(p.id)">
+                        <i class="ti ti-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="paiementsFiltres.length === 0">
+                  <td colspan="10" class="empty-msg">
+                    <i class="ti ti-credit-card-off"></i>
+                    Aucun paiement trouvé
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- PAGINATION -->
+          <div class="pagination" *ngIf="totalPages > 1">
+            <span class="pag-info">
+              Affichage {{ (pageActuelle-1)*parPage+1 }}–{{
+                Math.min(pageActuelle*parPage, paiementsFiltres.length)
+              }} sur {{ paiementsFiltres.length }}
+            </span>
+            <div class="pag-btns">
+              <button class="pag-btn"
+                (click)="changerPage(pageActuelle-1)"
+                [disabled]="pageActuelle === 1">
+                <i class="ti ti-chevron-left"></i>
+              </button>
+              <button class="pag-btn"
+                *ngFor="let p of pages"
+                [ngClass]="{active: p === pageActuelle}"
+                (click)="changerPage(p)">{{ p }}
+              </button>
+              <button class="pag-btn"
+                (click)="changerPage(pageActuelle+1)"
+                [disabled]="pageActuelle === totalPages">
+                <i class="ti ti-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </ng-container>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ENREGISTRER / MODIFIER -->
+<div class="modal-overlay" *ngIf="showModal" (click)="fermerModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ modeModal === 'ajouter' ? 'Enregistrer un paiement' : 'Modifier le paiement' }}</h3>
+      <button class="modal-close" (click)="fermerModal()">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Locataire *</label>
+          <select [(ngModel)]="paiementEnCours.locataire">
+            <option [value]="0">— Sélectionner —</option>
+            <option *ngFor="let l of locataires" [value]="l.id">
+              {{ l.prenom }} {{ l.nom }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Contrat *</label>
+          <select [(ngModel)]="paiementEnCours.contrat">
+            <option [value]="0">— Sélectionner —</option>
+            <option *ngFor="let c of contrats" [value]="c.id">
+              {{ c.reference ?? 'CTR-' + c.id }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Montant (FCFA) *</label>
+          <input type="number" [(ngModel)]="paiementEnCours.montant"
+            placeholder="0" />
+        </div>
+        <div class="form-group">
+          <label>Mois concerné *</label>
+          <select [(ngModel)]="paiementEnCours.mois">
+            <option value="">— Sélectionner —</option>
+            <option *ngFor="let m of moisDisponibles" [value]="m">{{ m }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Date de paiement</label>
+          <input type="date" [(ngModel)]="paiementEnCours.date_paiement" />
+        </div>
+        <div class="form-group">
+          <label>Mode de paiement</label>
+          <select [(ngModel)]="paiementEnCours.mode_paiement">
+            <option *ngFor="let m of modesPaiement" [value]="m">{{ m }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Statut *</label>
+        <select [(ngModel)]="paiementEnCours.statut">
+          <option value="Payé">Payé</option>
+          <option value="En attente">En attente</option>
+          <option value="Impayé">Impayé</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea [(ngModel)]="paiementEnCours.notes"
+          placeholder="Notes sur ce paiement…" rows="3"></textarea>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="fermerModal()">Annuler</button>
+      <button class="btn-save" (click)="soumettre()">
+        <i class="ti ti-check"></i>
+        {{ modeModal === 'ajouter' ? 'Enregistrer' : 'Mettre à jour' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMATION SUPPRESSION -->
+<div class="modal-overlay" *ngIf="showConfirmSuppr" (click)="annulerSuppression()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Confirmer la suppression</h3>
+      <button class="modal-close" (click)="annulerSuppression()">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-msg">
+        <i class="ti ti-alert-triangle confirm-icon"></i>
+        <p>Voulez-vous vraiment supprimer ce paiement ? Cette action est irréversible.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="annulerSuppression()">Annuler</button>
+      <button class="btn-danger" (click)="supprimerConfirme()">
+        <i class="ti ti-trash"></i> Supprimer
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,240 @@
+<div class="admin-page">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-box"><i class="ti ti-building"></i></div>
+      <div>
+        <div class="sb-logo-name">Eli<span class="accent">Estate</span></div>
+        <div class="sb-logo-sub">Espace Administrateur</div>
+      </div>
+    </div>
+    <div class="sb-divider"></div>
+    <nav class="sb-nav">
+      <ng-container *ngFor="let item of sidebarItems; let i = index">
+        <div class="sb-section"
+          *ngIf="i === 0 || item.section !== sidebarItems[i-1].section">
+          {{ item.section }}
+        </div>
+        <a class="sb-item" [ngClass]="{active: item.active}"
+          [routerLink]="item.route" (click)="setActive(i)">
+          <i [class]="item.icone"></i>{{ item.label }}
+          <span class="sb-badge" *ngIf="item.badge">{{ item.badge }}</span>
+        </a>
+      </ng-container>
+    </nav>
+    <div class="sb-bottom">
+      <div class="sb-user">
+        <div class="sb-avatar">AD</div>
+        <div>
+          <div class="sb-user-name">Admin</div>
+          <div class="sb-user-role">Administrateur</div>
+        </div>
+        <i class="ti ti-logout sb-logout" (click)="deconnecter()" title="Déconnexion"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENU -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="tb-left">
+        <h1>Gestion des utilisateurs</h1>
+        <p>Tous les comptes (administrateurs et propriétaires)</p>
+      </div>
+      <div class="tb-right">
+        <div class="tb-btn"><i class="ti ti-bell"></i></div>
+        <div class="tb-avatar">AD</div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <div class="page-header">
+        <div>
+          <h2>Utilisateurs</h2>
+          <p class="page-sub">{{ utilisateurs.length }} compte(s)</p>
+        </div>
+        <button class="btn-add" (click)="ouvrirAjout()">
+          <i class="ti ti-user-plus"></i> Ajouter un utilisateur
+        </button>
+      </div>
+
+      <div class="alert-error" *ngIf="erreur">
+        <i class="ti ti-alert-circle"></i>{{ erreur }}
+        <button (click)="charger()">Réessayer</button>
+      </div>
+
+      <div class="loading" *ngIf="loading">
+        <i class="ti ti-refresh spin"></i> Chargement…
+      </div>
+
+      <ng-container *ngIf="!loading && !erreur">
+
+        <!-- FILTRES -->
+        <div class="filters-row">
+          <div class="filter-search">
+            <i class="ti ti-search"></i>
+            <input type="text" placeholder="Rechercher un utilisateur…"
+              [(ngModel)]="recherche" (ngModelChange)="appliquerFiltres()" />
+          </div>
+          <select class="filter-select" [(ngModel)]="filtreRole" (ngModelChange)="appliquerFiltres()">
+            <option value="">Tous les rôles</option>
+            <option value="ADMIN">Administrateur</option>
+            <option value="AGENT">Agent immobilier</option>
+          </select>
+        </div>
+
+        <!-- TABLEAU -->
+        <div class="table-card">
+          <div class="tc-header">
+            <span class="tc-title">Comptes utilisateurs</span>
+            <span class="tc-count">{{ utilisateursFiltres.length }} résultat(s)</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Utilisateur</th>
+                  <th>Email</th>
+                  <th>Identifiant</th>
+                  <th>Rôle</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let u of utilisateursFiltres">
+                  <td>
+                    <div class="td-user">
+                      <div class="td-avatar">{{ getInitiales(u) }}</div>
+                      <span class="td-nom">{{ u.first_name }} {{ u.last_name }}</span>
+                    </div>
+                  </td>
+                  <td class="td-muted">{{ u.email }}</td>
+                  <td class="td-muted">{{ u.username }}</td>
+                  <td>
+                    <span class="role-badge" [ngClass]="getRoleClass(u.role)">
+                      {{ getRoleLabel(u.role) }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="u.is_active ? 'badge-green' : 'badge-amber'">
+                      {{ u.is_active ? 'Actif' : 'Inactif' }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="actions">
+                      <button class="act-btn" title="Modifier" (click)="ouvrirModifier(u)">
+                        <i class="ti ti-edit"></i>
+                      </button>
+                      <button class="act-btn" [title]="u.is_active ? 'Désactiver' : 'Activer'"
+                        [disabled]="u.id === monId"
+                        (click)="toggleActif(u)">
+                        <i class="ti" [ngClass]="u.is_active ? 'ti-lock' : 'ti-lock-open'"></i>
+                      </button>
+                      <button class="act-btn danger" title="Supprimer"
+                        [disabled]="u.id === monId"
+                        (click)="confirmerSuppression(u.id!)">
+                        <i class="ti ti-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="utilisateursFiltres.length === 0">
+                  <td colspan="6" class="empty-msg">
+                    <i class="ti ti-users-off"></i>
+                    Aucun utilisateur trouvé
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </ng-container>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AJOUTER / MODIFIER -->
+<div class="modal-overlay" *ngIf="showModal" (click)="fermerModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ modeModal === 'ajouter' ? 'Ajouter un utilisateur' : 'Modifier l\'utilisateur' }}</h3>
+      <button class="modal-close" (click)="fermerModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Prénom *</label>
+          <input type="text" [(ngModel)]="userEnCours.first_name" placeholder="Ex: Jean" />
+        </div>
+        <div class="form-group">
+          <label>Nom *</label>
+          <input type="text" [(ngModel)]="userEnCours.last_name" placeholder="Ex: Dupont" />
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Identifiant *</label>
+          <input type="text" [(ngModel)]="userEnCours.username" placeholder="Ex: jean.dupont" />
+        </div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" [(ngModel)]="userEnCours.email" placeholder="jean@eliestate.cm" />
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Rôle *</label>
+          <select [(ngModel)]="userEnCours.role">
+            <option value="AGENT">Agent immobilier (Propriétaire)</option>
+            <option value="ADMIN">Administrateur</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Statut</label>
+          <select [(ngModel)]="userEnCours.is_active">
+            <option [ngValue]="true">Actif</option>
+            <option [ngValue]="false">Inactif</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>{{ modeModal === 'ajouter' ? 'Mot de passe *' : 'Nouveau mot de passe (optionnel)' }}</label>
+        <input type="password" [(ngModel)]="userEnCours.password"
+          [placeholder]="modeModal === 'ajouter' ? 'Min. 8 caractères' : 'Laisser vide pour ne pas changer'" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="fermerModal()">Annuler</button>
+      <button class="btn-save" (click)="soumettre()">
+        <i class="ti ti-check"></i>
+        {{ modeModal === 'ajouter' ? 'Créer le compte' : 'Mettre à jour' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMATION SUPPRESSION -->
+<div class="modal-overlay" *ngIf="showConfirmSuppr" (click)="annulerSuppression()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Confirmer la suppression</h3>
+      <button class="modal-close" (click)="annulerSuppression()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-msg">
+        <i class="ti ti-alert-triangle confirm-icon"></i>
+        <p>Voulez-vous vraiment supprimer cet utilisateur ?</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="annulerSuppression()">Annuler</button>
+      <button class="btn-danger" (click)="supprimerConfirme()">
+        <i class="ti ti-trash"></i> Supprimer
+      </button>
+    </div>
+  </div>
+</div>

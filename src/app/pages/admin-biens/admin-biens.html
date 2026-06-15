@@ -1,0 +1,175 @@
+<div class="admin-page">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-box"><i class="ti ti-building"></i></div>
+      <div>
+        <div class="sb-logo-name">Eli<span class="accent">Estate</span></div>
+        <div class="sb-logo-sub">Espace Administrateur</div>
+      </div>
+    </div>
+    <div class="sb-divider"></div>
+    <nav class="sb-nav">
+      <ng-container *ngFor="let item of sidebarItems; let i = index">
+        <div class="sb-section"
+          *ngIf="i === 0 || item.section !== sidebarItems[i-1].section">
+          {{ item.section }}
+        </div>
+        <a class="sb-item" [ngClass]="{active: item.active}"
+          [routerLink]="item.route" (click)="setActive(i)">
+          <i [class]="item.icone"></i>{{ item.label }}
+          <span class="sb-badge" *ngIf="item.badge">{{ item.badge }}</span>
+        </a>
+      </ng-container>
+    </nav>
+    <div class="sb-bottom">
+      <div class="sb-user">
+        <div class="sb-avatar">AD</div>
+        <div>
+          <div class="sb-user-name">Admin</div>
+          <div class="sb-user-role">Administrateur</div>
+        </div>
+        <i class="ti ti-logout sb-logout" (click)="deconnecter()" title="Déconnexion"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENU -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="tb-left">
+        <h1>Tous les biens</h1>
+        <p>Biens de tous les propriétaires de la plateforme</p>
+      </div>
+      <div class="tb-right">
+        <div class="tb-btn"><i class="ti ti-bell"></i></div>
+        <div class="tb-avatar">AD</div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <div class="page-header">
+        <div>
+          <h2>Biens immobiliers</h2>
+          <p class="page-sub">{{ biensRows.length }} bien(s) au total</p>
+        </div>
+      </div>
+
+      <div class="alert-error" *ngIf="erreur">
+        <i class="ti ti-alert-circle"></i>{{ erreur }}
+        <button (click)="charger()">Réessayer</button>
+      </div>
+
+      <div class="loading" *ngIf="loading">
+        <i class="ti ti-refresh spin"></i> Chargement…
+      </div>
+
+      <ng-container *ngIf="!loading && !erreur">
+
+        <!-- MINI STATS -->
+        <div class="stats-mini">
+          <div class="sm-card">
+            <div class="sm-icon ico-blue"><i class="ti ti-building"></i></div>
+            <div><div class="sm-val">{{ stats.total }}</div><div class="sm-lbl">Total biens</div></div>
+          </div>
+          <div class="sm-card">
+            <div class="sm-icon ico-green"><i class="ti ti-home-check"></i></div>
+            <div><div class="sm-val">{{ stats.occupes }}</div><div class="sm-lbl">Occupés</div></div>
+          </div>
+          <div class="sm-card">
+            <div class="sm-icon ico-blue2"><i class="ti ti-home"></i></div>
+            <div><div class="sm-val">{{ stats.disponibles }}</div><div class="sm-lbl">Disponibles</div></div>
+          </div>
+          <div class="sm-card">
+            <div class="sm-icon ico-amber"><i class="ti ti-tool"></i></div>
+            <div><div class="sm-val">{{ stats.travaux }}</div><div class="sm-lbl">En travaux</div></div>
+          </div>
+        </div>
+
+        <!-- FILTRES -->
+        <div class="filters-row">
+          <div class="filter-search">
+            <i class="ti ti-search"></i>
+            <input type="text" placeholder="Bien, localisation, propriétaire…"
+              [(ngModel)]="recherche" (ngModelChange)="appliquerFiltres()" />
+          </div>
+          <select class="filter-select" [(ngModel)]="filtreStatut" (ngModelChange)="appliquerFiltres()">
+            <option value="">Tous les statuts</option>
+            <option value="Disponible">Disponible</option>
+            <option value="Occupé">Occupé</option>
+            <option value="En travaux">En travaux</option>
+          </select>
+          <select class="filter-select" [(ngModel)]="filtreProprietaire" (ngModelChange)="appliquerFiltres()">
+            <option value="">Tous les propriétaires</option>
+            <option *ngFor="let p of proprietaires" [value]="p.id">
+              {{ p.first_name }} {{ p.last_name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- TABLEAU -->
+        <div class="table-card">
+          <div class="tc-header">
+            <span class="tc-title">Biens</span>
+            <span class="tc-count">{{ biensFiltres.length }} résultat(s)</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Bien</th>
+                  <th>Type</th>
+                  <th>Localisation</th>
+                  <th>Propriétaire</th>
+                  <th>Loyer (FCFA)</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let b of biensPagines">
+                  <td class="td-nom">{{ b.titre }}</td>
+                  <td>{{ b.categorie }}</td>
+                  <td class="td-muted">
+                    <i class="ti ti-map-pin"></i> {{ b.quartier_nom }}
+                  </td>
+                  <td class="td-muted">{{ b.nomProprietaire }}</td>
+                  <td class="td-prix">{{ b.loyer_mensuel | number:'1.0-0' }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="getBadgeClass(b.statut)">{{ b.statut }}</span>
+                  </td>
+                </tr>
+                <tr *ngIf="biensFiltres.length === 0">
+                  <td colspan="6" class="empty-msg">
+                    <i class="ti ti-building-off"></i>
+                    Aucun bien trouvé
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination" *ngIf="totalPages > 1">
+            <span class="pag-info">
+              Affichage {{ (pageActuelle-1)*parPage+1 }}–{{
+                Math.min(pageActuelle*parPage, biensFiltres.length)
+              }} sur {{ biensFiltres.length }}
+            </span>
+            <div class="pag-btns">
+              <button class="pag-btn" (click)="changerPage(pageActuelle-1)" [disabled]="pageActuelle === 1">
+                <i class="ti ti-chevron-left"></i>
+              </button>
+              <button class="pag-btn" *ngFor="let p of pages"
+                [ngClass]="{active: p === pageActuelle}" (click)="changerPage(p)">{{ p }}</button>
+              <button class="pag-btn" (click)="changerPage(pageActuelle+1)" [disabled]="pageActuelle === totalPages">
+                <i class="ti ti-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </ng-container>
+    </div>
+  </div>
+</div>

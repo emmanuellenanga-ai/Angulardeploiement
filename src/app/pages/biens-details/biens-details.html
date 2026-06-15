@@ -1,0 +1,230 @@
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-logo">
+    <div class="logo-icon"><i class="ti ti-building"></i></div>
+    <div class="logo-text">
+      <span class="name">Eli<span class="accent">Estate</span></span>
+      <span class="sub">Gestion Immobilière</span>
+    </div>
+  </div>
+  <ul class="nav-links">
+    <li><a routerLink="/home">Accueil</a></li>
+    <li><a routerLink="/biens-publics" class="active">Biens disponibles</a></li>
+    <li><a routerLink="/apropos">À propos</a></li>
+    <li><a routerLink="/contact">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-phone"><i class="ti ti-phone"></i>{{ telephone }}</div>
+    <button class="btn-login" routerLink="/login">
+      <i class="ti ti-user"></i> Se connecter
+    </button>
+  </div>
+</nav>
+
+<!-- CHARGEMENT -->
+<div class="page-loading" *ngIf="loading">
+  <i class="ti ti-refresh spin"></i> Chargement du bien…
+</div>
+
+<!-- ERREUR -->
+<div class="page-error" *ngIf="erreur && !loading">
+  <i class="ti ti-building-off"></i>
+  <h2>{{ erreur }}</h2>
+  <button class="btn-primary" routerLink="/biens-publics">
+    <i class="ti ti-arrow-left"></i> Retour aux biens
+  </button>
+</div>
+
+<!-- CONTENU -->
+<div class="detail-page" *ngIf="bien && !loading">
+
+  <!-- FIL D'ARIANE -->
+  <div class="breadcrumb">
+    <a routerLink="/home">Accueil</a>
+    <i class="ti ti-chevron-right"></i>
+    <a routerLink="/biens-publics">Biens disponibles</a>
+    <i class="ti ti-chevron-right"></i>
+    <span>{{ bien.nom }}</span>
+  </div>
+
+  <div class="detail-layout">
+
+    <!-- ═══ COLONNE GAUCHE : galerie + infos ═══ -->
+    <div class="detail-main">
+
+      <!-- GALERIE -->
+      <div class="gallery">
+        <div class="gallery-main">
+          <img [src]="images[imageActive]" [alt]="bien.nom" />
+          <span class="gallery-badge" [ngClass]="getBadgeClass(bien.statut)">
+            {{ bien.statut }}
+          </span>
+          <button class="gallery-fav" (click)="toggleFavori()">
+            <i class="ti" [ngClass]="favori ? 'ti-heart-filled' : 'ti-heart'"
+               [style.color]="favori ? '#ef4444' : '#94a3b8'"></i>
+          </button>
+        </div>
+        <div class="gallery-thumbs" *ngIf="images.length > 1">
+          <div class="thumb" *ngFor="let img of images; let i = index"
+               [ngClass]="{active: i === imageActive}"
+               (click)="changerImage(i)">
+            <img [src]="img" [alt]="bien.nom + ' photo ' + (i+1)" />
+          </div>
+        </div>
+      </div>
+
+      <!-- TITRE & PRIX -->
+      <div class="detail-header">
+        <div>
+          <h1>{{ bien.nom }}</h1>
+          <div class="detail-loc">
+            <i class="ti ti-map-pin"></i>{{ bien.localisation }}
+          </div>
+        </div>
+        <div class="detail-prix">
+          {{ bien.loyer_mensuel.toLocaleString() }}
+          <small>FCFA / mois</small>
+        </div>
+      </div>
+
+      <!-- CARACTÉRISTIQUES -->
+      <div class="card-section">
+        <h3>Caractéristiques</h3>
+        <div class="caract-grid">
+          <div class="caract-item" *ngFor="let c of caracteristiques">
+            <div class="caract-icon"><i [class]="c.icone"></i></div>
+            <div>
+              <div class="caract-label">{{ c.label }}</div>
+              <div class="caract-val">{{ c.valeur }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DESCRIPTION -->
+      <div class="card-section" *ngIf="bien.description">
+        <h3>Description</h3>
+        <p class="description-text">{{ bien.description }}</p>
+      </div>
+
+      <!-- LOCALISATION -->
+      <div class="card-section">
+        <h3>Localisation</h3>
+        <div class="map-placeholder">
+          <i class="ti ti-map"></i>
+          <div>
+            <div class="map-titre">{{ bien.localisation }}</div>
+            <div class="map-sub">Yaoundé, Cameroun</div>
+          </div>
+          <a [href]="'https://maps.google.com/?q=' + bien.localisation"
+            target="_blank" class="map-btn">
+            <i class="ti ti-external-link"></i> Voir sur Maps
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══ COLONNE DROITE : formulaire contact ═══ -->
+    <div class="detail-sidebar">
+      <div class="contact-card">
+
+        <div class="cc-header">
+          <div class="cc-icon"><i class="ti ti-home-search"></i></div>
+          <div>
+            <div class="cc-title">Intéressé par ce bien ?</div>
+            <div class="cc-sub">Demandez une visite dès maintenant</div>
+          </div>
+        </div>
+
+        <!-- SUCCÈS -->
+        <div class="alert-success" *ngIf="envoiSucces">
+          <i class="ti ti-circle-check"></i>
+          Votre demande a été envoyée ! Le propriétaire vous contactera bientôt.
+        </div>
+
+        <!-- ERREUR -->
+        <div class="alert-error" *ngIf="envoiErreur">
+          <i class="ti ti-alert-circle"></i>{{ envoiErreur }}
+        </div>
+
+        <!-- FORMULAIRE -->
+        <form class="cc-form" *ngIf="!envoiSucces">
+          <div class="form-group">
+            <label>Nom complet *</label>
+            <div class="input-wrap">
+              <i class="ti ti-user input-icon"></i>
+              <input type="text" [(ngModel)]="form.nom" name="nom"
+                placeholder="Votre nom" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Téléphone *</label>
+            <div class="input-wrap">
+              <i class="ti ti-phone input-icon"></i>
+              <input type="tel" [(ngModel)]="form.telephone" name="telephone"
+                placeholder="6XX XX XX XX" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Email *</label>
+            <div class="input-wrap">
+              <i class="ti ti-mail input-icon"></i>
+              <input type="email" [(ngModel)]="form.email" name="email"
+                placeholder="votre@email.com" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Date de visite souhaitée</label>
+            <div class="input-wrap">
+              <i class="ti ti-calendar input-icon"></i>
+              <input type="date" [(ngModel)]="form.date_souhaitee" name="date_souhaitee" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Message</label>
+            <textarea [(ngModel)]="form.message" name="message"
+              placeholder="Précisez vos disponibilités ou questions…"
+              rows="3"></textarea>
+          </div>
+
+          <button type="button" class="btn-contact" (click)="envoyerDemande()" [disabled]="envoiEnCours">
+            <ng-container *ngIf="!envoiEnCours">
+              <i class="ti ti-send"></i> Demander une visite
+            </ng-container>
+            <ng-container *ngIf="envoiEnCours">
+              <i class="ti ti-refresh spin"></i> Envoi en cours…
+            </ng-container>
+          </button>
+        </form>
+
+        <div class="cc-divider"><span>ou</span></div>
+
+        <a [href]="'tel:' + telephone" class="cc-phone">
+          <i class="ti ti-phone"></i>
+          <div>
+            <div class="cc-phone-label">Appeler directement</div>
+            <div class="cc-phone-val">{{ telephone }}</div>
+          </div>
+        </a>
+
+        <div class="cc-security">
+          <i class="ti ti-shield-check"></i>
+          Vos informations sont transmises de manière sécurisée au propriétaire.
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <span class="footer-brand">Eli<span class="accent">Estate</span></span>
+  <span class="footer-copy">© 2024 EliEstate — Tous droits réservés</span>
+  <div class="footer-links">
+    <a href="#">Confidentialité</a>
+    <a routerLink="/contact">Contact</a>
+  </div>
+</footer>

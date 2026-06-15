@@ -1,0 +1,283 @@
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-logo">
+    <div class="logo-icon"><i class="ti ti-building"></i></div>
+    <div class="logo-text">
+      <span class="name">Eli<span class="accent">Estate</span></span>
+      <span class="sub">Gestion Immobilière</span>
+    </div>
+  </div>
+  <ul class="nav-links">
+    <li><a routerLink="/home" routerLinkActive="active">Accueil</a></li>
+    <li><a routerLink="/apropos" routerLinkActive="active">À propos</a></li>
+    <li><a routerLink="/biens-publics" routerLinkActive="active">Biens</a></li>
+    <li><a routerLink="/services" routerLinkActive="active">Services</a></li>
+    <li><a routerLink="/contact" routerLinkActive="active">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-phone">
+      <i class="ti ti-phone"></i>{{ telephone }}
+    </div>
+    <button class="btn-login" routerLink="/login">
+      <i class="ti ti-user"></i> Se connecter
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-badge">BIENVENUE CHEZ EliEstate</div>
+    <h1>
+      La gestion immobilière<br>
+      simple, <span class="accent-light">efficace</span> et sécurisée
+    </h1>
+    <p class="hero-sub">
+      EliEstate vous accompagne dans la gestion complète de vos
+      biens, contrats, loyers et locataires en toute simplicité.
+    </p>
+    <div class="hero-btns">
+      <button class="btn-primary" routerLink="/biens-publics">
+         <i class="ti ti-building"></i> Découvrir nos biens
+      </button>
+      <button class="btn-secondary" routerLink="/services">
+        Nos services <i class="ti ti-arrow-right"></i>
+      </button>
+    </div>
+    <div class="hero-dots">
+      <span class="dot active"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </div>
+  </div>
+</section>
+
+<!-- BARRE DE RECHERCHE -->
+<div class="search-bar">
+  <div class="search-field">
+    <div class="sf-icon"><i class="ti ti-home"></i></div>
+    <div class="sf-content">
+      <div class="sf-label">Type de bien</div>
+      <div class="sf-val">Appartement, Maison…</div>
+    </div>
+  </div>
+  <div class="search-divider"></div>
+  <div class="search-field">
+    <div class="sf-icon"><i class="ti ti-map-pin"></i></div>
+    <div class="sf-content">
+      <div class="sf-label">Localisation</div>
+      <div class="sf-val">Ville, Quartier…</div>
+    </div>
+  </div>
+  <div class="search-divider"></div>
+  <div class="search-field">
+    <div class="sf-icon"><i class="ti ti-coin"></i></div>
+    <div class="sf-content">
+      <div class="sf-label">Prix max</div>
+      <div class="sf-val">Votre budget…</div>
+    </div>
+  </div>
+  <button class="btn-search" (click)="lancerRecherche()">
+    <i class="ti ti-search"></i> Rechercher
+  </button>
+</div>
+
+<!-- STATISTIQUES DYNAMIQUES -->
+<div class="stats-grid">
+
+  <!-- Skeleton si chargement -->
+  <ng-container *ngIf="loadingStats">
+    <div class="stat-card skeleton" *ngFor="let i of [1,2,3,4,5]">
+      <div class="skel-icon"></div>
+      <div class="skel-text">
+        <div class="skel-val"></div>
+        <div class="skel-lbl"></div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Stats réelles depuis Django -->
+  <ng-container *ngIf="!loadingStats && !erreurStats">
+
+    <div class="stat-card">
+      <div class="stat-icon si-blue"><i class="ti ti-building"></i></div>
+      <div class="stat-info">
+        <!-- data-target => animerCompteurs() lit cette valeur -->
+        <div class="val" [attr.data-target]="stats.biensDisponibles">0</div>
+        <div class="lbl">Biens disponibles</div>
+        <a routerLink="/bien" class="stat-link">
+          Voir tous <i class="ti ti-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon si-green"><i class="ti ti-home"></i></div>
+      <div class="stat-info">
+        <div class="val" [attr.data-target]="stats.biensOccupes">0</div>
+        <div class="lbl">Biens occupés</div>
+        <a routerLink="/bien" class="stat-link">
+          Voir tous <i class="ti ti-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon si-orange"><i class="ti ti-file-text"></i></div>
+      <div class="stat-info">
+        <div class="val" [attr.data-target]="stats.contratsActifs">0</div>
+        <div class="lbl">Contrats actifs</div>
+        <a routerLink="/contrat" class="stat-link">
+          Voir tous <i class="ti ti-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon si-purple"><i class="ti ti-wallet"></i></div>
+      <div class="stat-info">
+        <!-- Loyers en M FCFA — pas de data-target car formaté -->
+        <div class="val">{{ loyersFormates }}</div>
+        <div class="lbl">Loyers encaissés</div>
+        <div class="stat-link muted">Ce mois-ci</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon si-teal"><i class="ti ti-users"></i></div>
+      <div class="stat-info">
+        <div class="val" [attr.data-target]="stats.locataires">0</div>
+        <div class="lbl">Locataires</div>
+        <a routerLink="/locataire" class="stat-link">
+          Voir tous <i class="ti ti-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <!-- Erreur stats -->
+  <div class="stat-error" *ngIf="erreurStats">
+    <i class="ti ti-alert-circle"></i>
+    {{ erreurStats }}
+    <button (click)="chargerStats()">Réessayer</button>
+  </div>
+
+</div>
+
+<!-- BIENS EN VEDETTE -->
+<section class="biens-section">
+
+  <div class="section-header">
+    <h2 class="section-title">
+      Biens en <span class="accent">vedette</span>
+    </h2>
+    <button class="btn-voir-tout" routerLink="/bien">
+      Voir tous les biens <i class="ti ti-arrow-right"></i>
+    </button>
+  </div>
+
+  <!-- Skeleton chargement -->
+  <div class="biens-grid" *ngIf="loadingBiens">
+    <div class="bien-card skeleton-card" *ngFor="let i of [1,2,3,4]">
+      <div class="skel-img"></div>
+      <div class="skel-body">
+        <div class="skel-line lg"></div>
+        <div class="skel-line sm"></div>
+        <div class="skel-line md"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Biens réels depuis Django -->
+  <div class="biens-grid" *ngIf="!loadingBiens && !erreurBiens">
+    <div class="bien-card" *ngFor="let b of biens; let i = index">
+      <div class="bien-thumb">
+        <img
+          [src]="getImageUrl(b)"
+          [alt]="b.nom"
+          class="bien-img"
+          loading="lazy"
+        />
+        <span class="bien-badge" [ngClass]="getBadgeClass(b.statut)">
+          {{ b.statut }}
+        </span>
+        <button class="btn-favori" (click)="toggleFavori(i)">
+          <i class="ti"
+            [ngClass]="b.favori ? 'ti-heart-filled' : 'ti-heart'"
+            [style.color]="b.favori ? '#ef4444' : '#94a3b8'">
+          </i>
+        </button>
+      </div>
+      <div class="bien-body">
+        <div class="bien-nom">{{ b.nom }}</div>
+        <div class="bien-loc">
+          <i class="ti ti-map-pin"></i>{{ b.localisation }}
+        </div>
+        <div class="bien-details">
+          <span class="bien-detail">
+            <i class="ti ti-bed"></i> {{ b.chambres }} ch.
+          </span>
+          <span class="bien-detail">
+            <i class="ti ti-bath"></i> {{ b.bains }} sdb
+          </span>
+          <span class="bien-detail">
+            <i class="ti ti-ruler"></i> {{ b.superficie }} m²
+          </span>
+        </div>
+        <div class="bien-footer">
+          <div class="bien-prix">
+            {{ b.loyer_mensuel | number:'1.0-0' }} <small>FCFA/mois</small>
+          </div>
+          <button class="btn-detail" [routerLink]="['/bien', b.id]">
+            Voir détails
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message si aucun bien -->
+    <div class="no-biens" *ngIf="biens.length === 0">
+      <i class="ti ti-building-off"></i>
+      Aucun bien disponible pour le moment
+    </div>
+  </div>
+
+  <!-- Erreur biens -->
+  <div class="biens-error" *ngIf="erreurBiens">
+    <i class="ti ti-alert-circle"></i>
+    {{ erreurBiens }}
+    <button (click)="chargerBiens()">Réessayer</button>
+  </div>
+
+</section>
+
+<!-- POURQUOI IMMOGEST -->
+<section class="why-section">
+  <div class="section-header">
+    <h2 class="section-title">
+      Pourquoi choisir <span class="accent">EliEstate</span> ?
+    </h2>
+  </div>
+  <div class="why-grid">
+    <div class="why-card" *ngFor="let a of avantages">
+      <div class="why-icon" [ngClass]="a.couleur">
+        <i [class]="a.iconeClass"></i>
+      </div>
+      <h4>{{ a.titre }}</h4>
+      <p>{{ a.description }}</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <span class="footer-brand">Eli<span class="accent">Estate</span></span>
+  <span class="footer-copy">© 2024 EliEstate — Tous droits réservés</span>
+  <div class="footer-links">
+    <a href="#">Confidentialité</a>
+    <a href="#">Contact</a>
+  </div>
+</footer>

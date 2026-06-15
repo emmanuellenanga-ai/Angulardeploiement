@@ -1,0 +1,249 @@
+<div class="admin-page">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-box"><i class="ti ti-building"></i></div>
+      <div>
+        <div class="sb-logo-name">Eli<span class="accent">Estate</span></div>
+        <div class="sb-logo-sub">Espace Administrateur</div>
+      </div>
+    </div>
+    <div class="sb-divider"></div>
+    <nav class="sb-nav">
+      <ng-container *ngFor="let item of sidebarItems; let i = index">
+        <div class="sb-section"
+          *ngIf="i === 0 || item.section !== sidebarItems[i-1].section">
+          {{ item.section }}
+        </div>
+        <a class="sb-item" [ngClass]="{active: item.active}"
+          [routerLink]="item.route" (click)="setActive(i)">
+          <i [class]="item.icone"></i>{{ item.label }}
+          <span class="sb-badge" *ngIf="item.badge">{{ item.badge }}</span>
+        </a>
+      </ng-container>
+    </nav>
+    <div class="sb-bottom">
+      <div class="sb-user">
+        <div class="sb-avatar">AD</div>
+        <div>
+          <div class="sb-user-name">Admin</div>
+          <div class="sb-user-role">Administrateur</div>
+        </div>
+        <i class="ti ti-logout sb-logout" (click)="deconnecter()" title="Déconnexion"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENU -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="tb-left">
+        <h1>Gestion des propriétaires</h1>
+        <p>Comptes propriétaires de la plateforme</p>
+      </div>
+      <div class="tb-right">
+        <div class="tb-btn"><i class="ti ti-bell"></i></div>
+        <div class="tb-avatar">AD</div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <div class="page-header">
+        <div>
+          <h2>Propriétaires</h2>
+          <p class="page-sub">{{ proprietaires.length }} compte(s)</p>
+        </div>
+        <button class="btn-add" (click)="ouvrirAjout()">
+          <i class="ti ti-user-plus"></i> Créer un compte propriétaire
+        </button>
+      </div>
+
+      <div class="alert-error" *ngIf="erreur">
+        <i class="ti ti-alert-circle"></i>{{ erreur }}
+        <button (click)="charger()">Réessayer</button>
+      </div>
+
+      <div class="loading" *ngIf="loading">
+        <i class="ti ti-refresh spin"></i> Chargement…
+      </div>
+
+      <ng-container *ngIf="!loading && !erreur">
+
+        <!-- MINI STATS -->
+        <div class="stats-mini">
+          <div class="sm-card">
+            <div class="sm-icon ico-blue"><i class="ti ti-users"></i></div>
+            <div><div class="sm-val">{{ stats.total }}</div><div class="sm-lbl">Total propriétaires</div></div>
+          </div>
+          <div class="sm-card">
+            <div class="sm-icon ico-green"><i class="ti ti-user-check"></i></div>
+            <div><div class="sm-val">{{ stats.actifs }}</div><div class="sm-lbl">Comptes actifs</div></div>
+          </div>
+          <div class="sm-card">
+            <div class="sm-icon ico-amber"><i class="ti ti-user-off"></i></div>
+            <div><div class="sm-val">{{ stats.inactifs }}</div><div class="sm-lbl">Comptes désactivés</div></div>
+          </div>
+        </div>
+
+        <!-- FILTRES -->
+        <div class="filters-row">
+          <div class="filter-search">
+            <i class="ti ti-search"></i>
+            <input type="text" placeholder="Rechercher un propriétaire…"
+              [(ngModel)]="recherche" (ngModelChange)="appliquerFiltres()" />
+          </div>
+          <select class="filter-select" [(ngModel)]="filtreStatut" (ngModelChange)="appliquerFiltres()">
+            <option value="">Tous les statuts</option>
+            <option value="actif">Actif</option>
+            <option value="inactif">Inactif</option>
+          </select>
+        </div>
+
+        <!-- TABLEAU -->
+        <div class="table-card">
+          <div class="tc-header">
+            <span class="tc-title">Comptes propriétaires</span>
+            <span class="tc-count">{{ proprietairesFiltres.length }} résultat(s)</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Propriétaire</th>
+                  <th>Email</th>
+                  <th>Téléphone</th>
+                  <th>Identifiant</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let p of proprietairesFiltres">
+                  <td>
+                    <div class="td-user">
+                      <div class="td-avatar">{{ getInitiales(p) }}</div>
+                      <span class="td-nom">{{ p.first_name }} {{ p.last_name }}</span>
+                    </div>
+                  </td>
+                  <td class="td-muted">{{ p.email }}</td>
+                  <td class="td-muted">{{ p.telephone || '—' }}</td>
+                  <td class="td-muted">{{ p.username }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="p.is_active ? 'badge-green' : 'badge-amber'">
+                      {{ p.is_active ? 'Actif' : 'Inactif' }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="actions">
+                      <button class="act-btn" title="Modifier" (click)="ouvrirModifier(p)">
+                        <i class="ti ti-edit"></i>
+                      </button>
+                      <button class="act-btn" [title]="p.is_active ? 'Désactiver' : 'Activer'"
+                        (click)="toggleActif(p)">
+                        <i class="ti" [ngClass]="p.is_active ? 'ti-lock' : 'ti-lock-open'"></i>
+                      </button>
+                      <button class="act-btn danger" title="Supprimer"
+                        (click)="confirmerSuppression(p.id!)">
+                        <i class="ti ti-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="proprietairesFiltres.length === 0">
+                  <td colspan="6" class="empty-msg">
+                    <i class="ti ti-users-off"></i>
+                    Aucun propriétaire trouvé
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </ng-container>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AJOUTER / MODIFIER -->
+<div class="modal-overlay" *ngIf="showModal" (click)="fermerModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ modeModal === 'ajouter' ? 'Créer un compte propriétaire' : 'Modifier le propriétaire' }}</h3>
+      <button class="modal-close" (click)="fermerModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Prénom *</label>
+          <input type="text" [(ngModel)]="propEnCours.first_name" placeholder="Ex: Martin" />
+        </div>
+        <div class="form-group">
+          <label>Nom *</label>
+          <input type="text" [(ngModel)]="propEnCours.last_name" placeholder="Ex: Paul" />
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Identifiant (username) *</label>
+          <input type="text" [(ngModel)]="propEnCours.username" placeholder="Ex: martin.paul" />
+        </div>
+        <div class="form-group">
+          <label>Téléphone</label>
+          <input type="tel" [(ngModel)]="propEnCours.telephone" placeholder="699 11 22 33" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email *</label>
+        <input type="email" [(ngModel)]="propEnCours.email" placeholder="proprietaire@email.com" />
+      </div>
+      <div class="form-group">
+        <label>{{ modeModal === 'ajouter' ? 'Mot de passe *' : 'Nouveau mot de passe (optionnel)' }}</label>
+        <input type="password" [(ngModel)]="propEnCours.password"
+          [placeholder]="modeModal === 'ajouter' ? 'Min. 8 caractères' : 'Laisser vide pour ne pas changer'" />
+      </div>
+      <div class="form-group" *ngIf="modeModal === 'modifier'">
+        <label>Statut du compte</label>
+        <select [(ngModel)]="propEnCours.is_active">
+          <option [ngValue]="true">Actif</option>
+          <option [ngValue]="false">Inactif</option>
+        </select>
+      </div>
+      <div class="info-box">
+        <i class="ti ti-info-circle"></i>
+        Ce compte aura le rôle <strong>Propriétaire</strong> et pourra gérer ses propres biens, locataires, contrats et paiements.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="fermerModal()">Annuler</button>
+      <button class="btn-save" (click)="soumettre()">
+        <i class="ti ti-check"></i>
+        {{ modeModal === 'ajouter' ? 'Créer le compte' : 'Mettre à jour' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMATION SUPPRESSION -->
+<div class="modal-overlay" *ngIf="showConfirmSuppr" (click)="annulerSuppression()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Confirmer la suppression</h3>
+      <button class="modal-close" (click)="annulerSuppression()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-msg">
+        <i class="ti ti-alert-triangle confirm-icon"></i>
+        <p>Supprimer ce propriétaire supprimera également l'accès à tous ses biens, contrats et données. Cette action est irréversible.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="annulerSuppression()">Annuler</button>
+      <button class="btn-danger" (click)="supprimerConfirme()">
+        <i class="ti ti-trash"></i> Supprimer
+      </button>
+    </div>
+  </div>
+</div>

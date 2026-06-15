@@ -1,0 +1,165 @@
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-logo">
+    <div class="logo-icon"><i class="ti ti-building"></i></div>
+    <div class="logo-text">
+      <span class="name">Eli<span class="accent">Estate</span></span>
+      <span class="sub">Gestion Immobilière</span>
+    </div>
+  </div>
+  <ul class="nav-links">
+    <li><a routerLink="/home">Accueil</a></li>
+    <li><a routerLink="/apropos">À propos</a></li>
+    <li><a routerLink="/bien">Biens</a></li>
+    <li><a routerLink="/services">Services</a></li>
+    <li><a routerLink="/blog">Blog</a></li>
+    <li><a routerLink="/contact" class="active">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-phone"><i class="ti ti-phone"></i>{{ telephone }}</div>
+    <button class="btn-login" routerLink="/login">
+      <i class="ti ti-user"></i> Se connecter
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="page-hero contact-hero">
+  <div class="page-hero-overlay"></div>
+  <div class="page-hero-content">
+    <div class="page-badge">Contactez-nous</div>
+    <h1>Nous sommes là pour<br><span class="accent-light">vous accompagner</span></h1>
+    <p>Une question, un projet ? Notre équipe est disponible pour vous répondre dans les plus brefs délais.</p>
+  </div>
+</section>
+
+<!-- CONTENU PRINCIPAL -->
+<section class="section-surface">
+  <div class="container">
+    <div class="contact-layout">
+
+      <!-- FORMULAIRE -->
+      <div class="contact-form-wrap">
+        <div class="form-card">
+
+          <!-- Succès -->
+          <div class="alert-success" *ngIf="succes">
+            <i class="ti ti-circle-check"></i>
+            Message envoyé avec succès ! Nous vous répondrons sous 24h.
+          </div>
+
+          <!-- Erreur -->
+          <div class="alert-error" *ngIf="erreur">
+            <i class="ti ti-alert-circle"></i>{{ erreur }}
+          </div>
+
+          <h2>Envoyez-nous un message</h2>
+          <p class="form-sub">Tous les champs marqués * sont obligatoires.</p>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Nom complet *</label>
+              <div class="input-wrap">
+                <i class="ti ti-user input-icon"></i>
+                <input type="text" [(ngModel)]="form.nom"
+                  placeholder="Ex: Jean Dupont" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Email *</label>
+              <div class="input-wrap">
+                <i class="ti ti-mail input-icon"></i>
+                <input type="email" [(ngModel)]="form.email"
+                  placeholder="votre@email.com" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Sujet</label>
+            <div class="input-wrap">
+              <i class="ti ti-tag input-icon"></i>
+              <select [(ngModel)]="form.sujet" class="select-with-icon">
+                <option value="">— Sélectionner un sujet —</option>
+                <option *ngFor="let s of sujets" [value]="s">{{ s }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Message *</label>
+            <textarea [(ngModel)]="form.message"
+              placeholder="Décrivez votre demande…"
+              rows="5"></textarea>
+          </div>
+
+          <button class="btn-submit" (click)="envoyerMessage()" [disabled]="loading">
+            <ng-container *ngIf="!loading">
+              <i class="ti ti-send"></i> Envoyer le message
+            </ng-container>
+            <ng-container *ngIf="loading">
+              <i class="ti ti-refresh spin"></i> Envoi en cours…
+            </ng-container>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- INFOS CONTACT -->
+      <div class="contact-infos">
+
+        <h3>Nos coordonnées</h3>
+        <p>N'hésitez pas à nous contacter par l'un de ces moyens.</p>
+
+        <div class="info-cards">
+          <a class="info-card"
+            *ngFor="let info of infos"
+            [href]="info.lien ?? '#'"
+            [target]="info.lien ? '_blank' : '_self'">
+            <div class="info-icon"><i [class]="info.icone"></i></div>
+            <div>
+              <div class="info-titre">{{ info.titre }}</div>
+              <div class="info-valeur">{{ info.valeur }}</div>
+            </div>
+          </a>
+        </div>
+
+        <!-- CARTE MAP PLACEHOLDER -->
+        <div class="map-placeholder">
+          <i class="ti ti-map"></i>
+          <div>
+            <div class="map-titre">Bastos, Yaoundé</div>
+            <div class="map-sub">Cameroun</div>
+          </div>
+          <a href="https://maps.google.com/?q=Bastos+Yaoundé+Cameroun"
+            target="_blank" class="map-btn">
+            <i class="ti ti-external-link"></i> Voir sur Maps
+          </a>
+        </div>
+
+        <!-- RÉSEAUX SOCIAUX -->
+        <div class="socials">
+          <div class="socials-titre">Suivez-nous</div>
+          <div class="socials-icons">
+            <a href="#" class="social-btn"><i class="ti ti-brand-facebook"></i></a>
+            <a href="#" class="social-btn"><i class="ti ti-brand-instagram"></i></a>
+            <a href="#" class="social-btn"><i class="ti ti-brand-linkedin"></i></a>
+            <a href="#" class="social-btn"><i class="ti ti-brand-twitter"></i></a>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <span class="footer-brand">Eli<span class="accent">Estate</span></span>
+  <span class="footer-copy">© 2024 EliEstate — Tous droits réservés</span>
+  <div class="footer-links">
+    <a href="#">Confidentialité</a>
+    <a routerLink="/contact">Contact</a>
+  </div>
+</footer>

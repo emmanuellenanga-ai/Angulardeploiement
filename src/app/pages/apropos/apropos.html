@@ -1,0 +1,145 @@
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-logo">
+    <div class="logo-icon"><i class="ti ti-building"></i></div>
+    <div class="logo-text">
+      <span class="name">Eli<span class="accent">Estate</span></span>
+      <span class="sub">Gestion Immobilière</span>
+    </div>
+  </div>
+  <ul class="nav-links">
+    <li><a routerLink="/home">Accueil</a></li>
+    <li><a routerLink="/apropos" class="active">À propos</a></li>
+    <li><a routerLink="/biens-publics">Biens</a></li>
+    <li><a routerLink="/services">Services</a></li>
+    <li><a routerLink="/contact">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-phone"><i class="ti ti-phone"></i>{{ telephone }}</div>
+    <button class="btn-login" routerLink="/login">
+      <i class="ti ti-user"></i> Se connecter
+    </button>
+  </div>
+</nav>
+
+<!-- HERO PAGE -->
+<section class="page-hero">
+  <div class="page-hero-overlay"></div>
+  <div class="page-hero-content">
+    <div class="page-badge">À propos de nous</div>
+    <h1>Votre partenaire de confiance<br>en <span class="accent-light">gestion immobilière</span></h1>
+    <p>Depuis 2019, EliEstate accompagne propriétaires et locataires avec des solutions modernes et efficaces.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" routerLink="/contact">
+        <i class="ti ti-mail"></i> Nous contacter
+      </button>
+      <button class="btn-secondary" routerLink="/services">
+        Nos services <i class="ti ti-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-band">
+  <div class="stat-item" *ngFor="let s of stats">
+    <div class="stat-val">{{ s.val }}</div>
+    <div class="stat-lbl">{{ s.label }}</div>
+  </div>
+</div>
+
+<!-- NOTRE HISTOIRE -->
+<section class="section-white">
+  <div class="container">
+    <div class="two-cols">
+      <div class="col-text">
+        <div class="section-tag">Notre histoire</div>
+        <h2>Une agence née d'une vision claire</h2>
+        <p>EliEstate a été fondée en 2026 à Yaoundé avec une mission simple : rendre la gestion immobilière accessible, transparente et efficace pour tous.</p>
+        <p>Face aux défis du marché immobilier camerounais — manque de transparence, gestion manuelle, suivi difficile des paiements — nous avons développé une plateforme digitale complète qui centralise tout.</p>
+        <p>Aujourd'hui, nous gérons plus de 500 biens répartis dans toutes les communes de Yaoundé, et notre équipe de 12 professionnels s'engage chaque jour pour la satisfaction de nos clients.</p>
+        <button class="btn-primary" routerLink="/contact" style="margin-top:1.5rem">
+          <i class="ti ti-arrow-right"></i> En savoir plus
+        </button>
+      </div>
+      <div class="col-image">
+        <div class="image-card">
+          <img
+            src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80"
+            alt="Notre équipe au travail"
+            loading="lazy"
+          />
+          <div class="image-badge">
+            <i class="ti ti-award"></i>
+            <div>
+              <div class="ib-val">5 ans</div>
+              <div class="ib-lbl">d'expérience</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NOS VALEURS -->
+<section class="section-surface">
+  <div class="container">
+    <div class="section-header center">
+      <div class="section-tag">Nos valeurs</div>
+      <h2>Ce qui nous guide au quotidien</h2>
+      <p>Des valeurs fortes qui définissent notre façon de travailler et de servir nos clients.</p>
+    </div>
+    <div class="valeurs-grid">
+      <div class="valeur-card" *ngFor="let v of valeurs">
+        <div class="valeur-icon" [class]="v.couleur">
+          <i [class]="v.icone"></i>
+        </div>
+        <h3>{{ v.titre }}</h3>
+        <p>{{ v.desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ÉQUIPE -->
+<section class="section-white">
+  <div class="container">
+    <div class="section-header center">
+      <div class="section-tag">Notre équipe</div>
+      <h2>Des professionnels à votre service</h2>
+      <p>Une équipe expérimentée et passionnée par l'immobilier.</p>
+    </div>
+    <div class="equipe-grid">
+      <div class="equipe-card" *ngFor="let m of equipe">
+        <div class="equipe-avatar" [style.background]="m.couleur">{{ m.initiales }}</div>
+        <div class="equipe-nom">{{ m.nom }}</div>
+        <div class="equipe-poste">{{ m.poste }}</div>
+        <div class="equipe-socials">
+          <a href="#"><i class="ti ti-brand-linkedin"></i></a>
+          <a href="#"><i class="ti ti-mail"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Prêt à nous faire confiance ?</h2>
+  <p>Rejoignez les centaines de propriétaires qui nous font confiance chaque jour.</p>
+  <div class="cta-btns">
+    <button class="btn-primary" routerLink="/login">Accéder à mon espace</button>
+    <button class="btn-ghost" routerLink="/contact">Nous contacter</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <span class="footer-brand">Eli<span class="accent">Estate</span></span>
+  <span class="footer-copy">© 2024 EliEstate — Tous droits réservés</span>
+  <div class="footer-links">
+    <a href="#">Confidentialité</a>
+    <a routerLink="/contact">Contact</a>
+  </div>
+</footer>

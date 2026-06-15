@@ -1,0 +1,406 @@
+<div class="param-page">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-box"><i class="ti ti-building"></i></div>
+      <div>
+        <div class="sb-logo-name">Eli<span class="accent">Estate</span></div>
+        <div class="sb-logo-sub">Gestion Immobilière</div>
+      </div>
+    </div>
+    <div class="sb-divider"></div>
+    <nav class="sb-nav">
+      <ng-container *ngFor="let item of sidebarItems; let i = index">
+        <div class="sb-section"
+          *ngIf="i === 0 || item.section !== sidebarItems[i-1].section">
+          {{ item.section }}
+        </div>
+        <a class="sb-item" [ngClass]="{active: item.active}"
+          [routerLink]="item.route" (click)="setActive(i)">
+          <i [class]="item.icone"></i>{{ item.label }}
+        </a>
+      </ng-container>
+    </nav>
+    <div class="sb-bottom">
+      <div class="sb-user">
+        <div class="sb-avatar">AD</div>
+        <div>
+          <div class="sb-user-name">Admin</div>
+          <div class="sb-user-role">Administrateur</div>
+        </div>
+        <i class="ti ti-logout sb-logout"(click)="deconnecter()"title="Se déconnecter"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENU -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="tb-left">
+        <h1>Paramètres</h1>
+        <p>Configuration de votre espace EliEstate</p>
+      </div>
+      <div class="tb-right">
+        <div class="tb-btn"><i class="ti ti-bell"></i></div>
+        <div class="tb-avatar">AD</div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- MESSAGE SUCCÈS -->
+      <div class="alert-success" *ngIf="succes">
+        <i class="ti ti-circle-check"></i>{{ succes }}
+      </div>
+      <div class="alert-error" *ngIf="erreur">
+        <i class="ti ti-alert-circle"></i>{{ erreur }}
+      </div>
+
+      <!-- ONGLETS -->
+      <div class="tabs-bar">
+        <button *ngFor="let o of onglets"
+          class="tab-btn"
+          [ngClass]="{active: ongletActif === o.val}"
+          (click)="ongletActif = o.val">
+          <i [class]="o.icone"></i>{{ o.label }}
+        </button>
+      </div>
+
+      <!-- ═══ ONGLET AGENCE ═══ -->
+      <div class="tab-content" *ngIf="ongletActif === 'agence'">
+        <div class="section-card">
+          <div class="sc-header">
+            <h3>Informations de l'agence</h3>
+            <p>Configurez les informations générales de votre agence</p>
+          </div>
+          <div class="sc-body">
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>Nom de l'agence *</label>
+                <input type="text" [(ngModel)]="agence.nom"
+                  placeholder="Ex: EliEstate" />
+              </div>
+              <div class="form-group">
+                <label>Devise</label>
+                <select [(ngModel)]="agence.devise">
+                  <option value="FCFA">FCFA</option>
+                  <option value="EUR">EUR</option>
+                  <option value="USD">USD</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Adresse</label>
+              <input type="text" [(ngModel)]="agence.adresse"
+                placeholder="Ex: Bastos, Yaoundé, Cameroun" />
+            </div>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>Téléphone</label>
+                <input type="tel" [(ngModel)]="agence.telephone"
+                  placeholder="+237 6 XX XX XX XX" />
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" [(ngModel)]="agence.email"
+                  placeholder="contact@agence.cm" />
+              </div>
+            </div>
+          </div>
+          <div class="sc-footer">
+            <button class="btn-save" (click)="sauvegarderAgence()" [disabled]="loading">
+              <i class="ti ti-check" *ngIf="!agenceSauvegardee"></i>
+              <i class="ti ti-circle-check" *ngIf="agenceSauvegardee"></i>
+              {{ agenceSauvegardee ? 'Sauvegardé !' : 'Enregistrer les modifications' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ONGLET UTILISATEURS ═══ -->
+      <div class="tab-content" *ngIf="ongletActif === 'utilisateurs'">
+        <div class="section-card">
+          <div class="sc-header-row">
+            <div>
+              <h3>Gestion des utilisateurs</h3>
+              <p>Gérez les accès à votre espace EliEstate</p>
+            </div>
+            <button class="btn-add" (click)="ouvrirAjoutUser()">
+              <i class="ti ti-plus"></i> Ajouter un utilisateur
+            </button>
+          </div>
+          <div class="sc-body">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Utilisateur</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let u of utilisateurs">
+                    <td>
+                      <div class="td-user">
+                        <div class="td-avatar">{{ u.initiales }}</div>
+                        <span class="td-nom">{{ u.prenom }} {{ u.nom }}</span>
+                      </div>
+                    </td>
+                    <td class="td-muted">{{ u.email }}</td>
+                    <td>
+                      <span class="role-badge" [ngClass]="getRoleClass(u.role)">
+                        {{ u.role }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge" [ngClass]="getBadgeClass(u.statut)">
+                        {{ u.statut }}
+                      </span>
+                    </td>
+                    <td>
+                      <div class="actions">
+                        <button class="act-btn" (click)="ouvrirModifierUser(u)">
+                          <i class="ti ti-edit"></i>
+                        </button>
+                        <button class="act-btn danger"
+                          (click)="confirmerSupprUser(u.id!)">
+                          <i class="ti ti-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ONGLET NOTIFICATIONS ═══ -->
+      <div class="tab-content" *ngIf="ongletActif === 'notifications'">
+        <div class="section-card">
+          <div class="sc-header">
+            <h3>Préférences de notifications</h3>
+            <p>Choisissez quand et comment vous souhaitez être notifié</p>
+          </div>
+          <div class="sc-body">
+
+            <div class="notif-section">
+              <div class="notif-section-title">
+                <i class="ti ti-mail"></i> Notifications par email
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">Paiement reçu</div>
+                  <div class="toggle-desc">Recevoir un email à chaque paiement enregistré</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" [(ngModel)]="notifications.emailPaiement" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">Nouveau contrat</div>
+                  <div class="toggle-desc">Recevoir un email à la création d'un contrat</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" [(ngModel)]="notifications.emailContrat" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">Contrat en expiration</div>
+                  <div class="toggle-desc">Alerte 30 jours avant la fin d'un contrat</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" [(ngModel)]="notifications.emailExpiration" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="notif-section">
+              <div class="notif-section-title">
+                <i class="ti ti-device-mobile"></i> Notifications SMS
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">Impayé détecté</div>
+                  <div class="toggle-desc">SMS automatique en cas de loyer impayé</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" [(ngModel)]="notifications.smsImpaye" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-label">Bienvenue locataire</div>
+                  <div class="toggle-desc">SMS de bienvenue à chaque nouveau locataire</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" [(ngModel)]="notifications.smsBienvenue" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+          </div>
+          <div class="sc-footer">
+            <button class="btn-save" (click)="sauvegarderNotifications()">
+              <i class="ti ti-check"></i> Enregistrer les préférences
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ONGLET SÉCURITÉ ═══ -->
+      <div class="tab-content" *ngIf="ongletActif === 'securite'">
+        <div class="section-card">
+          <div class="sc-header">
+            <h3>Changer le mot de passe</h3>
+            <p>Mettez à jour votre mot de passe de connexion</p>
+          </div>
+          <div class="sc-body">
+
+            <div class="alert-error" *ngIf="mdpErreur">
+              <i class="ti ti-alert-circle"></i>{{ mdpErreur }}
+            </div>
+            <div class="alert-success" *ngIf="mdpSucces">
+              <i class="ti ti-circle-check"></i>Mot de passe modifié avec succès !
+            </div>
+
+            <div class="form-group">
+              <label>Ancien mot de passe *</label>
+              <div class="input-wrap">
+                <i class="ti ti-lock input-icon"></i>
+                <input
+                  [type]="securite.showAncien ? 'text' : 'password'"
+                  [(ngModel)]="securite.ancienMdp"
+                  placeholder="••••••••" />
+                <i class="ti input-eye"
+                  [class]="securite.showAncien ? 'ti ti-eye-off input-eye' : 'ti ti-eye input-eye'"
+                  (click)="securite.showAncien = !securite.showAncien">
+                </i>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Nouveau mot de passe *</label>
+              <div class="input-wrap">
+                <i class="ti ti-lock input-icon"></i>
+                <input
+                  [type]="securite.showNouveau ? 'text' : 'password'"
+                  [(ngModel)]="securite.nouveauMdp"
+                  placeholder="Min. 8 caractères" />
+                <i class="ti input-eye"
+                  [class]="securite.showNouveau ? 'ti ti-eye-off input-eye' : 'ti ti-eye input-eye'"
+                  (click)="securite.showNouveau = !securite.showNouveau">
+                </i>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Confirmer le nouveau mot de passe *</label>
+              <div class="input-wrap">
+                <i class="ti ti-lock input-icon"></i>
+                <input
+                  [type]="securite.showConfirmer ? 'text' : 'password'"
+                  [(ngModel)]="securite.confirmerMdp"
+                  placeholder="••••••••" />
+                <i class="ti input-eye"
+                  [class]="securite.showConfirmer ? 'ti ti-eye-off input-eye' : 'ti ti-eye input-eye'"
+                  (click)="securite.showConfirmer = !securite.showConfirmer">
+                </i>
+              </div>
+            </div>
+
+          </div>
+          <div class="sc-footer">
+            <button class="btn-save" (click)="changerMotDePasse()">
+              <i class="ti ti-shield-check"></i>
+              Changer le mot de passe
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL UTILISATEUR -->
+<div class="modal-overlay" *ngIf="showModalUser" (click)="fermerModalUser()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ modeModalUser === 'ajouter' ? 'Ajouter un utilisateur' : 'Modifier l\'utilisateur' }}</h3>
+      <button class="modal-close" (click)="fermerModalUser()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Prénom *</label>
+          <input type="text" [(ngModel)]="userEnCours.prenom" placeholder="Ex: Jean" />
+        </div>
+        <div class="form-group">
+          <label>Nom *</label>
+          <input type="text" [(ngModel)]="userEnCours.nom" placeholder="Ex: Dupont" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email *</label>
+        <input type="email" [(ngModel)]="userEnCours.email" placeholder="jean@eliestate.cm" />
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Rôle *</label>
+          <select [(ngModel)]="userEnCours.role">
+            <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Statut *</label>
+          <select [(ngModel)]="userEnCours.statut">
+            <option value="Actif">Actif</option>
+            <option value="Inactif">Inactif</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="fermerModalUser()">Annuler</button>
+      <button class="btn-save" (click)="soumettreUser()">
+        <i class="ti ti-check"></i>
+        {{ modeModalUser === 'ajouter' ? 'Enregistrer' : 'Mettre à jour' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMATION SUPPRESSION USER -->
+<div class="modal-overlay" *ngIf="showConfirmSupprUser" (click)="annulerSupprUser()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Confirmer la suppression</h3>
+      <button class="modal-close" (click)="annulerSupprUser()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-msg">
+        <i class="ti ti-alert-triangle confirm-icon"></i>
+        <p>Voulez-vous vraiment supprimer cet utilisateur ?</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="annulerSupprUser()">Annuler</button>
+      <button class="btn-danger" (click)="supprimerUserConfirme()">
+        <i class="ti ti-trash"></i> Supprimer
+      </button>
+    </div>
+  </div>
+</div>
