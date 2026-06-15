@@ -20,7 +20,7 @@ export interface Bien {
 @Injectable({ providedIn: 'root' })
 export class BienService {
 
-  private api = `${environment.apiUrl}/bien/`;
+  private api = `${environment.apiUrl}/bien`;
 
   constructor(private http: HttpClient) {}
 
